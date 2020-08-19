@@ -21,18 +21,18 @@ func NewTokenIterator(tkns []*Token) *TokenIterator {
 }
 
 // Next advances the iterator by one, returning nil and resetting if the end has been reached
-func (it *TokenIterator) Next() (int, *Token) {
+func (it *TokenIterator) Next() *Token {
 	it.Index++
 	if len(it.Tokens) <= it.Index {
 		it.Index = 0
-		return it.Index, nil
+		return nil
 	}
-	return it.Index, it.Tokens[it.Index]
+	return it.Tokens[it.Index]
 }
 
 // Current returns the current Token
-func (it *TokenIterator) Current() (int, *Token) {
-	return it.Index, it.Tokens[it.Index]
+func (it *TokenIterator) Current() *Token {
+	return it.Tokens[it.Index]
 }
 
 // AtIndex returns the Token at the given index or nil

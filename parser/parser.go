@@ -6,15 +6,31 @@ import (
 )
 
 // Parse parses a series of tokens as a syntax tree
-func Parse(tokens []*lexer.Token) (*ast.Source, error) {
+func Parse(tokens []*lexer.Token) (*ast.BlockStatement, error) {
 	it := lexer.NewTokenIterator(tokens)
-	src := &ast.Source{}
+	block := &ast.BlockStatement{}
 
-	_, tkn := it.Next()
+	tkn := it.Next()
 	for tkn != nil {
-		if tkn.Type == "symbol" {
-			src.BlockStatements = append(src.BlockStatements, parseSymbol(tkn, it))
+		if tkn.Type == "{" {
+			// block statement
+
+		} else if tkn.Type == "symbol" {
+			// statement
+			stmt, err := parseStatement(tkn, it)
+			if err != nil {
+				return nil, err
+			}
+			block.Statements = append(block.Statements, stmt)
+		} else {
+			// expression
+			exp, err := parseExpression(tkn, it)
+			if err != nil {
+				return nil, err
+			}
+			block.Statements = append(block.Statements, &ast.ExpressionStatement{Expression: exp})
 		}
+		tkn = it.Next()
 	}
-	return src, nil
+	return block, nil
 }

@@ -53,7 +53,7 @@ func Analyze(source string) (tkns []*Token) {
 
 // scan a string from the reader, including the double quotes
 func scanString(reader *strings.Reader) *Token {
-	val := "\""
+	var val string
 	c, err := reader.ReadByte()
 	if err != nil {
 		panic(err)
@@ -77,7 +77,6 @@ func scanString(reader *strings.Reader) *Token {
 			}
 		}
 	}
-	val += string(c)
 	return &Token{
 		Type:  "string",
 		Value: val,
