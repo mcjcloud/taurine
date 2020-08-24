@@ -13,9 +13,9 @@ func parseStatement(tkn *lexer.Token, it *lexer.TokenIterator) (ast.Statement, e
 			return parseVarDecleration(tkn, it)
 		} else if tkn.Value == ast.ETCH {
 			return parseEtchStatement(tkn, it)
-		} else if tkn.Value == ast.FOR {
+		} /* else if tkn.Value == ast.FOR {
 			return parseForLoop(tkn, it)
-		}
+		}*/
 	}
 	return nil, errors.New("Unrecognized statement")
 }
@@ -74,6 +74,10 @@ func parseAssignmentExpression(tkn *lexer.Token, dataType ast.Symbol, it *lexer.
 		if _, ok := exp.(*ast.StringLiteral); ok {
 			return exp, nil
 		}
+	} else if dataType == ast.BOOL {
+		if _, ok := exp.(*ast.BooleanLiteral); ok {
+			return exp, nil
+		}
 	}
 	if _, ok := exp.(*ast.OperationExpression); ok {
 		return exp, nil
@@ -105,6 +109,6 @@ func parseEtchStatement(tkn *lexer.Token, it *lexer.TokenIterator) (*ast.EtchSta
 	return &ast.EtchStatement{Expressions: exps}, nil
 }
 
-func parseForLoop(tkn *lexer.Token, it *lexer.TokenIterator) (*ast.ForLoopStatement, error) {
+// func parseForLoop(tkn *lexer.Token, it *lexer.TokenIterator) (*ast.ForLoopStatement, error) {
 
-}
+// }

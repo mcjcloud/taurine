@@ -47,21 +47,13 @@ func parseExpression(tkn *lexer.Token, it *lexer.TokenIterator, exp ast.Expressi
 	} else if tkn.Type == "string" {
 		return &ast.StringLiteral{Value: tkn.Value}, nil
 	} else if tkn.Type == "symbol" {
+		if tkn.Value == "true" {
+			return &ast.BooleanLiteral{Value: true}, nil
+		} else if tkn.Value == "false" {
+			return &ast.BooleanLiteral{Value: false}, nil
+		}
 		return &ast.Identifier{Name: tkn.Value}, nil
 	} else {
 		return nil, errors.New("unexpected start of expression")
 	}
 }
-
-// func parseOperation(left *ast.ExpressionStatement, op ast.Operator, it *lexer.TokenIterator) (*ast.OperationExpression, error) {
-// 	nxt := it.Next()
-// 	exp, err := parseExpression(nxt, it, nil)
-// 	if err != nil {
-// 		return nil, err
-// 	}
-// 	return &ast.OperationExpression{
-// 		LeftExpression:  left.Expression,
-// 		Operator:        op,
-// 		RightExpression: exp,
-// 	}, nil
-// }

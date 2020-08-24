@@ -15,7 +15,7 @@ func isWhitespace(c byte) bool {
 }
 
 func isSpecial(c byte) bool {
-	return c == '{' || c == '}' || c == '(' || c == ')' || c == '@' || c == ',' || c == ';' || c == ':' || c == '='
+	return c == '{' || c == '}' || c == '(' || c == ')' || c == '@' || c == ',' || c == ';' || c == ':'
 }
 
 func isOperation(c byte) bool {
@@ -40,6 +40,20 @@ func Analyze(source string) (tkns []*Token) {
 			tkns = append(tkns, &Token{Type: string(c)}) // special characters {}()@,;:= will be their own type
 		} else if isOperation(c) {
 			tkns = append(tkns, scanOperation(c, srcReader))
+		} else if c == '=' {
+			// check the next one is '=' to see if this is special or an operation
+			nxt, err := srcReader.ReadByte()
+			if err != nil {
+				panic(err)
+			}
+			if nxt == '=' {
+				tkns = append(tkns, &Token{Type: "operation", Value: "=="})
+			} else {
+				tkns = append(tkns, &Token{Type: string(c)})
+				if err = srcReader.UnreadByte(); err != nil {
+					panic(err)
+				}
+			}
 		} else if numberRe.Match([]byte{c}) {
 			tkns = append(tkns, scan(c, srcReader, numberRe, "number"))
 		} else if symbolRe.Match(([]byte{c})) {
@@ -96,7 +110,7 @@ func scanOperation(c byte, reader *strings.Reader) *Token {
 		panic(err)
 	}
 
-	if c != '!' && b == '=' {
+	if b == '=' {
 		val += string(b)
 	} else {
 		if err = reader.UnreadByte(); err != nil {

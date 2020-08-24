@@ -92,6 +92,8 @@ const (
 	NUM = "num"
 	// STR represents a string type
 	STR = "str"
+	// BOOL represents a boolean type
+	BOOL = "bool"
 )
 
 // Operator represents an operator
@@ -115,7 +117,7 @@ func (str Symbol) IsStatementPrefix() bool {
 
 // IsDataType returns true if the symbol represents a data type
 func (str Symbol) IsDataType() bool {
-	return str == NUM || str == STR
+	return str == NUM || str == STR || str == BOOL
 }
 
 // NumberLiteral represents the num data type
@@ -136,6 +138,16 @@ type StringLiteral struct {
 func (s *StringLiteral) evaluate() {}
 func (s *StringLiteral) String() string {
 	return s.Value
+}
+
+// BooleanLiteral represents a bool
+type BooleanLiteral struct {
+	Value bool
+}
+
+func (b *BooleanLiteral) evaluate() {}
+func (b *BooleanLiteral) String() string {
+	return fmt.Sprintf("%v", b.Value)
 }
 
 // Identifier represents a variable or some kind of reference

@@ -1,3 +1,6 @@
 var (num) x = 2;
 var (num) y = 3 * x + 5;
 etch y, y + 2;
+
+var (bool) z = true;
+etch z;

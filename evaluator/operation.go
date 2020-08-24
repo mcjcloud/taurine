@@ -52,6 +52,31 @@ func evaluateOperation(op *ast.OperationExpression, scope *Scope) (ast.Expressio
 			}
 		}
 		return nil, errors.New("'*' operator only applies to type num")
+	} else if op.Operator == "==" || op.Operator == "!=" {
+		equal := op.Operator == "=="
+		leftNum, lok := left.(*ast.NumberLiteral)
+		rightNum, rok := right.(*ast.NumberLiteral)
+		if (lok && !rok) || (!lok && rok) {
+			return nil, errors.New("'==' operator cannot be applied to arguments of different types")
+		} else if lok && rok {
+			return &ast.BooleanLiteral{Value: leftNum.Value == rightNum.Value && equal}, nil
+		}
+
+		leftStr, lok := left.(*ast.StringLiteral)
+		rightStr, rok := right.(*ast.StringLiteral)
+		if (lok && !rok) || (!lok && rok) {
+			return nil, errors.New("'==' operator cannot be applied to arguments of different types")
+		} else if lok && rok {
+			return &ast.BooleanLiteral{Value: leftStr.Value == rightStr.Value && equal}, nil
+		}
+
+		leftBool, lok := left.(*ast.BooleanLiteral)
+		rightBool, rok := right.(*ast.BooleanLiteral)
+		if (lok && !rok) || (!lok && rok) {
+			return nil, errors.New("'==' operator cannot be applied to arguments of different types")
+		} else if lok && rok {
+			return &ast.BooleanLiteral{Value: leftBool.Value == rightBool.Value && equal}, nil
+		}
 	}
 	return nil, errors.New("unrecognized operator")
 }
