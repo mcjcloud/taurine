@@ -20,10 +20,28 @@ func NewTokenIterator(tkns []*Token) *TokenIterator {
 	}
 }
 
+// Peek returns the next token without advancing
+func (it *TokenIterator) Peek() *Token {
+	if it.Index == len(it.Tokens)-1 {
+		return nil
+	}
+	return it.Tokens[it.Index+1]
+}
+
 // Next advances the iterator by one, returning nil and resetting if the end has been reached
 func (it *TokenIterator) Next() *Token {
 	it.Index++
-	if len(it.Tokens) <= it.Index {
+	if it.Index >= len(it.Tokens) {
+		it.Index = 0
+		return nil
+	}
+	return it.Tokens[it.Index]
+}
+
+// Prev moves the iterator back and returns that token
+func (it *TokenIterator) Prev() *Token {
+	it.Index--
+	if it.Index < 0 {
 		it.Index = 0
 		return nil
 	}

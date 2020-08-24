@@ -14,7 +14,6 @@ func Parse(tokens []*lexer.Token) (*ast.BlockStatement, error) {
 	for tkn != nil {
 		if tkn.Type == "{" {
 			// block statement
-
 		} else if tkn.Type == "symbol" {
 			// statement
 			stmt, err := parseStatement(tkn, it)
@@ -24,7 +23,7 @@ func Parse(tokens []*lexer.Token) (*ast.BlockStatement, error) {
 			block.Statements = append(block.Statements, stmt)
 		} else {
 			// expression
-			exp, err := parseExpression(tkn, it)
+			exp, err := parseExpression(tkn, it, nil)
 			if err != nil {
 				return nil, err
 			}

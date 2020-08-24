@@ -60,7 +60,7 @@ func parseVarDecleration(tkn *lexer.Token, it *lexer.TokenIterator) (*ast.Variab
 }
 
 func parseAssignmentExpression(tkn *lexer.Token, dataType ast.Symbol, it *lexer.TokenIterator) (ast.Expression, error) {
-	exp, err := parseExpression(tkn, it)
+	exp, err := parseExpression(tkn, it, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -73,13 +73,16 @@ func parseAssignmentExpression(tkn *lexer.Token, dataType ast.Symbol, it *lexer.
 			return exp, nil
 		}
 	}
+	if _, ok := exp.(*ast.OperationExpression); ok {
+		return exp, nil
+	}
 	return nil, errors.New("assigned type does not match initial value")
 }
 
 func parseEtchStatement(tkn *lexer.Token, it *lexer.TokenIterator) (*ast.EtchStatement, error) {
 	exps := []ast.Expression{}
 	nxt := it.Next()
-	exp, err := parseExpression(nxt, it)
+	exp, err := parseExpression(nxt, it, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -87,7 +90,7 @@ func parseEtchStatement(tkn *lexer.Token, it *lexer.TokenIterator) (*ast.EtchSta
 	nxt = it.Next()
 	for nxt.Type == "," {
 		nxt = it.Next()
-		exp, err = parseExpression(nxt, it)
+		exp, err = parseExpression(nxt, it, nil)
 		if err != nil {
 			return nil, err
 		}

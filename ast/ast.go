@@ -136,3 +136,15 @@ func (i *Identifier) evaluate() {}
 func (i *Identifier) String() string {
 	return i.Name
 }
+
+// OperationExpression represents an expression consisting of an operation
+type OperationExpression struct {
+	Operator        Operator   `json:"operator"`
+	LeftExpression  Expression `json:"leftExpression"`
+	RightExpression Expression `json:"rightExpression"`
+}
+
+func (o *OperationExpression) evaluate() {}
+func (o *OperationExpression) String() string {
+	return fmt.Sprintf("%s %s %s", o.LeftExpression.String(), o.Operator, o.RightExpression.String())
+}
