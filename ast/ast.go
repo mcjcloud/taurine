@@ -63,6 +63,17 @@ func (e *EtchStatement) String() string {
 	return val
 }
 
+// ForLoopStatement represents a for loop
+type ForLoopStatement struct {
+	Condition Expression `json:"condition"`
+	Statement Statement  `json:"statement"`
+}
+
+func (f *ForLoopStatement) do() {}
+func (f *ForLoopStatement) String() string {
+	return f.Condition.String()
+}
+
 // Symbol is a type which represents the possible beginning symbols of a statement
 type Symbol string
 

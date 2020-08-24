@@ -42,6 +42,12 @@ func executeEtchStatement(stmt *ast.EtchStatement, scope *Scope) error {
 			toEtch = append(toEtch, strExp.String())
 		} else if idExp, ok := exp.(*ast.Identifier); ok {
 			toEtch = append(toEtch, scope.Get(idExp.Name).String())
+		} else {
+			expEval, err := evaluateExpression(exp, scope)
+			if err != nil {
+				return err
+			}
+			toEtch = append(toEtch, expEval.String())
 		}
 	}
 	fmt.Println(strings.Join(toEtch, " "))

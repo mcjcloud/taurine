@@ -13,6 +13,8 @@ func parseStatement(tkn *lexer.Token, it *lexer.TokenIterator) (ast.Statement, e
 			return parseVarDecleration(tkn, it)
 		} else if tkn.Value == ast.ETCH {
 			return parseEtchStatement(tkn, it)
+		} else if tkn.Value == ast.FOR {
+			return parseForLoop(tkn, it)
 		}
 	}
 	return nil, errors.New("Unrecognized statement")
@@ -101,4 +103,8 @@ func parseEtchStatement(tkn *lexer.Token, it *lexer.TokenIterator) (*ast.EtchSta
 		return nil, errors.New("expected semicolon to end statement")
 	}
 	return &ast.EtchStatement{Expressions: exps}, nil
+}
+
+func parseForLoop(tkn *lexer.Token, it *lexer.TokenIterator) (*ast.ForLoopStatement, error) {
+
 }

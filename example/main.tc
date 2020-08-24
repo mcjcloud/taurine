@@ -1,3 +1,3 @@
 var (num) x = 2;
-var (num) y = 3 + y + 5;
-etch y;
+var (num) y = 3 * x + 5;
+etch y, y + 2;
