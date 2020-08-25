@@ -1,6 +1,7 @@
 package evaluator
 
 import (
+	"errors"
 	"fmt"
 	"strings"
 
@@ -9,7 +10,7 @@ import (
 
 // Evaluate evaluates the code and does stuff
 func Evaluate(block *ast.BlockStatement) error {
-	scope := &Scope{}
+	scope := NewScope()
 	for _, stmt := range block.Statements {
 		// do the statement
 		err := executeStatement(stmt, scope)
@@ -29,6 +30,43 @@ func executeStatement(stmt ast.Statement, scope *Scope) error {
 		if err := executeVariableDecleration(declStmt, scope); err != nil {
 			return err
 		}
+	} else if expStmt, ok := stmt.(*ast.ExpressionStatement); ok {
+		_, err := evaluateExpression(expStmt.Expression, scope)
+		return err
+	} else if blockStmt, ok := stmt.(*ast.BlockStatement); ok {
+		subScope := NewScopeWithParent(scope)
+		for _, s := range blockStmt.Statements {
+			err := executeStatement(s, subScope)
+			if err != nil {
+				return err
+			}
+		}
+	} else if whileStmt, ok := stmt.(*ast.WhileLoopStatement); ok {
+		exp, err := evaluateExpression(whileStmt.Condition, scope)
+		if err != nil {
+			return err
+		}
+		if boolExp, ok := exp.(*ast.BooleanLiteral); ok {
+			subScope := NewScopeWithParent(scope)
+			for boolExp.Value {
+				err := executeStatement(whileStmt.Statement, subScope)
+				if err != nil {
+					return err
+				}
+				exp, err = evaluateExpression(whileStmt.Condition, subScope)
+				if err != nil {
+					return err
+				}
+				boolExp, ok = exp.(*ast.BooleanLiteral)
+				if !ok {
+					return errors.New("while expression is no longer boolean")
+				}
+			}
+		} else {
+			return errors.New("while expression must evaluate to boolean")
+		}
+	} else {
+		return errors.New("unrecognized statement")
 	}
 	return nil
 }
@@ -59,6 +97,9 @@ func executeVariableDecleration(stmt *ast.VariableDecleration, scope *Scope) err
 	if err != nil {
 		return err
 	}
+	if scope.Variables[stmt.Symbol] != nil || (scope.Parent != nil && scope.Parent.Get(stmt.Symbol) != nil) {
+		return fmt.Errorf("variable '%s' already exists", stmt.Symbol)
+	}
 	scope.Set(stmt.Symbol, val)
 	return nil
 }
@@ -68,6 +109,18 @@ func evaluateExpression(exp ast.Expression, scope *Scope) (ast.Expression, error
 		return evaluateOperation(op, scope)
 	} else if id, ok := exp.(*ast.Identifier); ok {
 		return scope.Get(id.Name), nil
+	} else if asn, ok := exp.(*ast.AssignmentExpression); ok {
+		// make sure the identifier exists
+		if scope.Get(asn.Identifier.Name) == nil {
+			return nil, fmt.Errorf("'%s' was not declared", asn.Identifier.Name)
+		}
+		val, err := evaluateExpression(asn.Value, scope)
+		if err != nil {
+			return nil, err
+		}
+		// update the scope and return the evaluated value
+		scope.Set(asn.Identifier.Name, val)
+		return val, nil
 	}
 	return exp, nil
 }

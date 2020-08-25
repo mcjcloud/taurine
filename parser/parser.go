@@ -12,9 +12,7 @@ func Parse(tokens []*lexer.Token) (*ast.BlockStatement, error) {
 
 	tkn := it.Next()
 	for tkn != nil {
-		if tkn.Type == "{" {
-			// block statement
-		} else if tkn.Type == "symbol" {
+		if tkn.Type == "{" || tkn.Type == "symbol" {
 			// statement
 			stmt, err := parseStatement(tkn, it)
 			if err != nil {

@@ -25,6 +25,13 @@ type BlockStatement struct {
 }
 
 func (b *BlockStatement) do() {}
+func (b *BlockStatement) String() string {
+	var str string
+	for _, exp := range b.Statements {
+		str += exp.String()
+	}
+	return str
+}
 
 // ExpressionStatement represents a statement which is just an expression
 type ExpressionStatement struct {
@@ -45,7 +52,7 @@ type VariableDecleration struct {
 
 func (v *VariableDecleration) do() {}
 func (v *VariableDecleration) String() string {
-	return ""
+	return fmt.Sprintf("var (%s) %s = %s", v.SymbolType, v.Symbol, v.Value)
 }
 
 // EtchStatement represents an etch call
@@ -63,15 +70,15 @@ func (e *EtchStatement) String() string {
 	return val
 }
 
-// ForLoopStatement represents a for loop
-type ForLoopStatement struct {
+// WhileLoopStatement represents a for loop
+type WhileLoopStatement struct {
 	Condition Expression `json:"condition"`
 	Statement Statement  `json:"statement"`
 }
 
-func (f *ForLoopStatement) do() {}
-func (f *ForLoopStatement) String() string {
-	return f.Condition.String()
+func (w *WhileLoopStatement) do() {}
+func (w *WhileLoopStatement) String() string {
+	return w.Condition.String()
 }
 
 // Symbol is a type which represents the possible beginning symbols of a statement
@@ -82,6 +89,8 @@ const (
 	IF Symbol = "if"
 	// FOR represents the for keyword
 	FOR = "for"
+	// WHILE represents the while keyword
+	WHILE = "while"
 	// VAR represents the var keyword
 	VAR = "var"
 	// ETCH represents the etch keyword
@@ -112,7 +121,7 @@ const (
 
 // IsStatementPrefix returns true if the symbol is a statement prefix
 func (str Symbol) IsStatementPrefix() bool {
-	return str == IF || str == FOR || str == VAR || str == ETCH || str == RETURN
+	return str == IF || str == FOR || str == WHILE || str == VAR || str == ETCH || str == RETURN
 }
 
 // IsDataType returns true if the symbol represents a data type
@@ -170,4 +179,15 @@ type OperationExpression struct {
 func (o *OperationExpression) evaluate() {}
 func (o *OperationExpression) String() string {
 	return fmt.Sprintf("%s %s %s", o.LeftExpression.String(), o.Operator, o.RightExpression.String())
+}
+
+// AssignmentExpression represents an expression which assigns a new value to a variable
+type AssignmentExpression struct {
+	Identifier *Identifier `json:"identifier"`
+	Value      Expression  `json:"value"`
+}
+
+func (a *AssignmentExpression) evaluate() {}
+func (a *AssignmentExpression) String() string {
+	return fmt.Sprintf("%s = %s", a.Identifier, a.Value)
 }

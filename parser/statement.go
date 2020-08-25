@@ -2,22 +2,50 @@ package parser
 
 import (
 	"errors"
+	"fmt"
 
 	"github.com/mcjcloud/taurine/ast"
 	"github.com/mcjcloud/taurine/lexer"
 )
 
 func parseStatement(tkn *lexer.Token, it *lexer.TokenIterator) (ast.Statement, error) {
-	if ast.Symbol(tkn.Value).IsStatementPrefix() {
+	if tkn.Type == "{" {
+		block := &ast.BlockStatement{Statements: []ast.Statement{}}
+		nxt := it.Next()
+		for nxt.Type != "}" {
+			if nxt == nil {
+				return nil, errors.New("Expected '}' but found end of file")
+			}
+
+			stmt, err := parseStatement(nxt, it)
+			if err != nil {
+				return nil, err
+			}
+			block.Statements = append(block.Statements, stmt)
+			nxt = it.Next()
+		}
+		return block, nil
+	} else if ast.Symbol(tkn.Value).IsStatementPrefix() {
 		if tkn.Value == ast.VAR {
 			return parseVarDecleration(tkn, it)
 		} else if tkn.Value == ast.ETCH {
 			return parseEtchStatement(tkn, it)
-		} /* else if tkn.Value == ast.FOR {
-			return parseForLoop(tkn, it)
-		}*/
+		} else if tkn.Value == ast.WHILE {
+			return parseWhileLoop(tkn, it)
+		}
+	} else {
+		// it's an expression (identifier)
+		exp, err := parseExpression(tkn, it, nil)
+		if err != nil {
+			return nil, err
+		}
+		// expect the semicolon
+		if it.Next().Type != ";" {
+			return nil, errors.New("expected expression statement to end with ';'")
+		}
+		return &ast.ExpressionStatement{Expression: exp}, nil
 	}
-	return nil, errors.New("Unrecognized statement")
+	return nil, errors.New("unrecognized statement")
 }
 
 func parseVarDecleration(tkn *lexer.Token, it *lexer.TokenIterator) (*ast.VariableDecleration, error) {
@@ -40,6 +68,9 @@ func parseVarDecleration(tkn *lexer.Token, it *lexer.TokenIterator) (*ast.Variab
 	sym := it.Next()
 	if sym.Type != "symbol" {
 		return nil, errors.New("expected identifier")
+	}
+	if s := ast.Symbol(sym.Value); s.IsStatementPrefix() || s.IsDataType() {
+		return nil, fmt.Errorf("cannot use variable name '%s' as it is a reserved word", s)
 	}
 	decl.Symbol = sym.Value
 
@@ -109,6 +140,18 @@ func parseEtchStatement(tkn *lexer.Token, it *lexer.TokenIterator) (*ast.EtchSta
 	return &ast.EtchStatement{Expressions: exps}, nil
 }
 
-// func parseForLoop(tkn *lexer.Token, it *lexer.TokenIterator) (*ast.ForLoopStatement, error) {
+func parseWhileLoop(tkn *lexer.Token, it *lexer.TokenIterator) (*ast.WhileLoopStatement, error) {
+	exp, err := parseExpression(it.Next(), it, nil)
+	if err != nil {
+		return nil, err
+	}
 
-// }
+	stmt, err := parseStatement(it.Next(), it)
+	if err != nil {
+		return nil, err
+	}
+	return &ast.WhileLoopStatement{
+		Condition: exp,
+		Statement: stmt,
+	}, nil
+}

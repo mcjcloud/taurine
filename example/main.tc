@@ -1,6 +1,5 @@
 var (num) x = 2;
-var (num) y = 3 * x + 5;
-etch y, y + 2;
-
-var (bool) z = true;
-etch z;
+while x != 10 {
+  etch x;
+  x = x + 1;
+}

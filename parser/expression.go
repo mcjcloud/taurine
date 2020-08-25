@@ -13,14 +13,16 @@ func parseExpression(tkn *lexer.Token, it *lexer.TokenIterator, exp ast.Expressi
 	if exp == nil {
 		if tkn.Type == "number" {
 			val, _ := strconv.ParseFloat(tkn.Value, 64)
-			numExp := &ast.NumberLiteral{Value: val}
-			return parseExpression(tkn, it, numExp)
+			return parseExpression(tkn, it, &ast.NumberLiteral{Value: val})
 		} else if tkn.Type == "string" {
-			strExp := &ast.StringLiteral{Value: tkn.Value}
-			return parseExpression(tkn, it, strExp)
+			return parseExpression(tkn, it, &ast.StringLiteral{Value: tkn.Value})
 		} else if tkn.Type == "symbol" {
-			idExp := &ast.Identifier{Name: tkn.Value}
-			return parseExpression(tkn, it, idExp)
+			if tkn.Value == "true" {
+				return parseExpression(tkn, it, &ast.BooleanLiteral{Value: true})
+			} else if tkn.Value == "false" {
+				return parseExpression(tkn, it, &ast.BooleanLiteral{Value: false})
+			}
+			return parseExpression(tkn, it, &ast.Identifier{Name: tkn.Value})
 		} else {
 			return nil, errors.New("unexpected start of expression")
 		}
@@ -40,7 +42,23 @@ func parseExpression(tkn *lexer.Token, it *lexer.TokenIterator, exp ast.Expressi
 			LeftExpression:  exp,
 			RightExpression: right,
 		}, nil
+	} else if peek.Type == "=" {
+		idExp, ok := exp.(*ast.Identifier)
+		if !ok {
+			return nil, errors.New("expected left side of assignment to be an identifier")
+		}
+
+		it.Next()
+		val, err := parseExpression(it.Next(), it, nil)
+		if err != nil {
+			return nil, err
+		}
+		return &ast.AssignmentExpression{
+			Identifier: idExp,
+			Value:      val,
+		}, nil
 	}
+
 	if tkn.Type == "number" {
 		val, _ := strconv.ParseFloat(tkn.Value, 64)
 		return &ast.NumberLiteral{Value: val}, nil
