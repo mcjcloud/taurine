@@ -19,7 +19,7 @@ func isSpecial(c byte) bool {
 }
 
 func isOperation(c byte) bool {
-	return c == '+' || c == '-' || c == '*' || c == '/' || c == '%' || c == '!'
+	return c == '+' || c == '-' || c == '*' || c == '/' || c == '%' || c == '!' || c == '<' || c == '>'
 }
 
 // Analyze creates a series of tokens from source code

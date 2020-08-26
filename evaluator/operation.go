@@ -100,6 +100,34 @@ func evaluateOperation(op *ast.OperationExpression, scope *Scope) (ast.Expressio
 		} else if lok && rok {
 			return &ast.BooleanLiteral{Value: leftBool.Value != rightBool.Value}, nil
 		}
+	} else if op.Operator == "<" {
+		if leftNum, ok := left.(*ast.NumberLiteral); ok {
+			if rightNum, ok := right.(*ast.NumberLiteral); ok {
+				return &ast.BooleanLiteral{Value: leftNum.Value < rightNum.Value}, nil
+			}
+		}
+		return nil, errors.New("'<' operator only applies to type num")
+	} else if op.Operator == ">" {
+		if leftNum, ok := left.(*ast.NumberLiteral); ok {
+			if rightNum, ok := right.(*ast.NumberLiteral); ok {
+				return &ast.BooleanLiteral{Value: leftNum.Value > rightNum.Value}, nil
+			}
+		}
+		return nil, errors.New("'>' operator only applies to type num")
+	} else if op.Operator == "<=" {
+		if leftNum, ok := left.(*ast.NumberLiteral); ok {
+			if rightNum, ok := right.(*ast.NumberLiteral); ok {
+				return &ast.BooleanLiteral{Value: leftNum.Value <= rightNum.Value}, nil
+			}
+		}
+		return nil, errors.New("'<=' operator only applies to type num")
+	} else if op.Operator == ">=" {
+		if leftNum, ok := left.(*ast.NumberLiteral); ok {
+			if rightNum, ok := right.(*ast.NumberLiteral); ok {
+				return &ast.BooleanLiteral{Value: leftNum.Value >= rightNum.Value}, nil
+			}
+		}
+		return nil, errors.New("'>=' operator only applies to type num")
 	}
 	return nil, errors.New("unrecognized operator")
 }
