@@ -1,8 +1,10 @@
 package evaluator
 
 import (
+	"bufio"
 	"errors"
 	"fmt"
+	"os"
 	"strings"
 
 	"github.com/mcjcloud/taurine/ast"
@@ -24,6 +26,10 @@ func Evaluate(block *ast.BlockStatement) error {
 func executeStatement(stmt ast.Statement, scope *Scope) error {
 	if etchStmt, ok := stmt.(*ast.EtchStatement); ok {
 		if err := executeEtchStatement(etchStmt, scope); err != nil {
+			return err
+		}
+	} else if readStmt, ok := stmt.(*ast.ReadStatement); ok {
+		if err := executeReadStatement(readStmt, scope); err != nil {
 			return err
 		}
 	} else if declStmt, ok := stmt.(*ast.VariableDecleration); ok {
@@ -89,6 +95,19 @@ func executeEtchStatement(stmt *ast.EtchStatement, scope *Scope) error {
 		}
 	}
 	fmt.Println(strings.Join(toEtch, " "))
+	return nil
+}
+
+func executeReadStatement(stmt *ast.ReadStatement, scope *Scope) error {
+	if stmt.Prompt != nil {
+		fmt.Printf("%s", stmt.Prompt)
+	}
+	scanner := bufio.NewScanner(os.Stdin)
+	if scanner.Scan() {
+		scope.Set(stmt.Identifier.Name, &ast.StringLiteral{Value: scanner.Text()})
+	} else {
+		return errors.New("error reading input")
+	}
 	return nil
 }
 

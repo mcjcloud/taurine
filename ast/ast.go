@@ -57,8 +57,7 @@ func (v *VariableDecleration) String() string {
 
 // EtchStatement represents an etch call
 type EtchStatement struct {
-	Type        string ""
-	Expressions []Expression
+	Expressions []Expression `json:"expressions"`
 }
 
 func (e *EtchStatement) do() {}
@@ -68,6 +67,17 @@ func (e *EtchStatement) String() string {
 		val += exp.String()
 	}
 	return val
+}
+
+// ReadStatement represents a statement to read from stdin
+type ReadStatement struct {
+	Identifier *Identifier    `json:"expressions"`
+	Prompt     *StringLiteral `json:"prompt"`
+}
+
+func (r *ReadStatement) do() {}
+func (r *ReadStatement) String() string {
+	return fmt.Sprintf("read %s, %s", r.Identifier, r.Prompt)
 }
 
 // WhileLoopStatement represents a for loop
@@ -95,6 +105,8 @@ const (
 	VAR = "var"
 	// ETCH represents the etch keyword
 	ETCH = "etch"
+	// READ represents the read keyword
+	READ = "read"
 	// RETURN represents the return keyword
 	RETURN = "return"
 	// NUM represents a number type
@@ -121,7 +133,7 @@ const (
 
 // IsStatementPrefix returns true if the symbol is a statement prefix
 func (str Symbol) IsStatementPrefix() bool {
-	return str == IF || str == FOR || str == WHILE || str == VAR || str == ETCH || str == RETURN
+	return str == IF || str == FOR || str == WHILE || str == VAR || str == ETCH || str == READ || str == RETURN
 }
 
 // IsDataType returns true if the symbol represents a data type

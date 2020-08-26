@@ -13,16 +13,16 @@ func parseStatement(tkn *lexer.Token, it *lexer.TokenIterator) (ast.Statement, e
 		block := &ast.BlockStatement{Statements: []ast.Statement{}}
 		nxt := it.Next()
 		for nxt.Type != "}" {
-			if nxt == nil {
-				return nil, errors.New("Expected '}' but found end of file")
-			}
-
 			stmt, err := parseStatement(nxt, it)
 			if err != nil {
 				return nil, err
 			}
 			block.Statements = append(block.Statements, stmt)
 			nxt = it.Next()
+
+			if nxt == nil {
+				return nil, errors.New("Expected '}' but found end of file")
+			}
 		}
 		return block, nil
 	} else if ast.Symbol(tkn.Value).IsStatementPrefix() {
@@ -30,6 +30,8 @@ func parseStatement(tkn *lexer.Token, it *lexer.TokenIterator) (ast.Statement, e
 			return parseVarDecleration(tkn, it)
 		} else if tkn.Value == ast.ETCH {
 			return parseEtchStatement(tkn, it)
+		} else if tkn.Value == ast.READ {
+			return parseReadStatement(tkn, it)
 		} else if tkn.Value == ast.WHILE {
 			return parseWhileLoop(tkn, it)
 		}
@@ -138,6 +140,39 @@ func parseEtchStatement(tkn *lexer.Token, it *lexer.TokenIterator) (*ast.EtchSta
 		return nil, errors.New("expected semicolon to end statement")
 	}
 	return &ast.EtchStatement{Expressions: exps}, nil
+}
+
+func parseReadStatement(tkn *lexer.Token, it *lexer.TokenIterator) (*ast.ReadStatement, error) {
+	// parse identifier
+	nxt := it.Next()
+	exp, err := parseExpression(nxt, it, nil)
+	if err != nil {
+		return nil, err
+	}
+	idExp, ok := exp.(*ast.Identifier)
+	if !ok {
+		return nil, errors.New("expected identifier at beginning of 'read' statement")
+	}
+	if nxt = it.Next(); nxt.Type != "," && nxt.Type != ";" {
+		return nil, errors.New("expected semicolon to end statement")
+	}
+
+	// parse prompt
+	exp, err = parseExpression(it.Next(), it, nil)
+	if err != nil {
+		return nil, err
+	}
+	if pmtExp, ok := exp.(*ast.StringLiteral); ok {
+		sc := it.Next()
+		if sc == nil || sc.Type != ";" {
+			return nil, errors.New("expected semicolon to end statement")
+		}
+		return &ast.ReadStatement{
+			Identifier: idExp,
+			Prompt:     pmtExp,
+		}, nil
+	}
+	return nil, errors.New("expected prompt after ','")
 }
 
 func parseWhileLoop(tkn *lexer.Token, it *lexer.TokenIterator) (*ast.WhileLoopStatement, error) {

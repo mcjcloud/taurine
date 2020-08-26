@@ -30,7 +30,7 @@ func parseExpression(tkn *lexer.Token, it *lexer.TokenIterator, exp ast.Expressi
 
 	// look ahead to see if next token is an operator
 	peek := it.Peek()
-	if peek.Type == "operation" {
+	if peek != nil && peek.Type == "operation" {
 		op := it.Next()
 		rStart := it.Next()
 		right, err := parseExpression(rStart, it, nil)
@@ -42,7 +42,7 @@ func parseExpression(tkn *lexer.Token, it *lexer.TokenIterator, exp ast.Expressi
 			LeftExpression:  exp,
 			RightExpression: right,
 		}, nil
-	} else if peek.Type == "=" {
+	} else if peek != nil && peek.Type == "=" {
 		idExp, ok := exp.(*ast.Identifier)
 		if !ok {
 			return nil, errors.New("expected left side of assignment to be an identifier")

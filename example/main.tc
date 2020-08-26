@@ -1,5 +1,3 @@
-var (num) x = 2;
-while x != 10 {
-  etch x;
-  x = x + 1;
-}
+var (num) n;
+read n, "Enter value: ";
+etch n, "1, 2, 3";

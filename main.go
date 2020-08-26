@@ -29,5 +29,8 @@ func main() {
 		fmt.Printf("Parsing Error: %v\n", err)
 		os.Exit(1)
 	}
-	evaluator.Evaluate(stmts)
+	err = evaluator.Evaluate(stmts)
+	if err != nil {
+		fmt.Printf("eval error: %s", err)
+	}
 }
