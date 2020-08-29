@@ -34,6 +34,8 @@ func parseStatement(tkn *lexer.Token, it *lexer.TokenIterator) (ast.Statement, e
 			return parseReadStatement(tkn, it)
 		} else if tkn.Value == ast.WHILE {
 			return parseWhileLoop(tkn, it)
+		} else if tkn.Value == ast.FUNC {
+			return parseFunction(tkn, it)
 		}
 	} else {
 		// it's an expression (identifier)
@@ -188,5 +190,75 @@ func parseWhileLoop(tkn *lexer.Token, it *lexer.TokenIterator) (*ast.WhileLoopSt
 	return &ast.WhileLoopStatement{
 		Condition: exp,
 		Statement: stmt,
+	}, nil
+}
+
+func parseFunction(tkn *lexer.Token, it *lexer.TokenIterator) (*ast.FunctionDecleration, error) {
+	// expect ( return type )
+	if nxt := it.Next(); nxt == nil || nxt.Type != "(" {
+		return nil, errors.New("expected '('")
+	}
+	nxt := it.Next()
+	if nxt == nil || nxt.Type != "symbol" || !ast.Symbol(nxt.Value).IsDataType() {
+		return nil, errors.New("expected data type")
+	}
+	returnType := nxt.Value
+
+	nxt = it.Next()
+	if nxt == nil || nxt.Type != ")" {
+		return nil, errors.New("expected ')'")
+	}
+
+	// expect symbol
+	nxt = it.Next()
+	if nxt == nil || nxt.Type != "symbol" {
+		return nil, errors.New("expected function name")
+	}
+	symbol := nxt.Value
+
+	// expect ( parameter, parameter, ... )
+	params := make([]*ast.VariableDecleration, 0)
+	if nxt := it.Next(); nxt == nil || nxt.Type != "(" {
+		return nil, errors.New("expected '('")
+	}
+	for nxt.Type != ")" {
+		nxt = it.Next()
+		if nxt == nil {
+			return nil, errors.New("unexpected end of file")
+		}
+		// first expect data type
+		if !ast.Symbol(nxt.Value).IsDataType() {
+			return nil, errors.New("expected data type for parameter")
+		}
+		dataType := nxt.Value
+
+		// next expect symbol
+		nxt = it.Next()
+		if nxt == nil || nxt.Type != "symbol" {
+			return nil, errors.New("expected parameter name")
+		}
+		paramName := nxt.Value
+		params = append(params, &ast.VariableDecleration{
+			Symbol:     paramName,
+			SymbolType: dataType,
+		})
+
+		// setup for next iteration, should be ',' or ')'
+		nxt = it.Next()
+		if nxt == nil || nxt.Type != "," && nxt.Type != ")" {
+			return nil, errors.New("expected ')' to end parameters")
+		}
+	}
+
+	// parse the statement that follows
+	body, err := parseStatement(it.Next(), it)
+	if err != nil {
+		return nil, err
+	}
+	return &ast.FunctionDecleration{
+		Symbol:     symbol,
+		ReturnType: returnType,
+		Parameters: params,
+		Body:       body,
 	}, nil
 }

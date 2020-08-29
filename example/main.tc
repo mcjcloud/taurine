@@ -1,5 +1,6 @@
-var (num) n = 10;
-while n >= 0 {
-  etch n;
-  n = n - 1;
+func (num) addTwo(num a, num b) {
+  etch a, b;
 }
+
+var (num) a = 2;
+addTwo(a, 4 + 2);

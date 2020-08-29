@@ -6,6 +6,7 @@ import "github.com/mcjcloud/taurine/ast"
 type Scope struct {
 	Parent    *Scope
 	Variables map[string]ast.Expression
+	Functions map[string]*ast.FunctionDecleration
 }
 
 // NewScope creates a new Scope
@@ -13,6 +14,7 @@ func NewScope() *Scope {
 	return &Scope{
 		Parent:    nil,
 		Variables: map[string]ast.Expression{},
+		Functions: map[string]*ast.FunctionDecleration{},
 	}
 }
 
@@ -42,4 +44,24 @@ func (s *Scope) Set(symbol string, val ast.Expression) {
 		return
 	}
 	s.Variables[symbol] = val
+}
+
+// GetFunction gets a function definition
+func (s *Scope) GetFunction(symbol string) *ast.FunctionDecleration {
+	if val, ok := s.Functions[symbol]; ok {
+		return val
+	}
+	if s.Parent != nil {
+		return s.Parent.GetFunction(symbol)
+	}
+	return nil
+}
+
+// SetFunction sets a function definition
+func (s *Scope) SetFunction(symbol string, val *ast.FunctionDecleration) {
+	if s.Functions[symbol] == nil && s.Parent != nil && s.Parent.GetFunction(symbol) != nil {
+		s.Parent.SetFunction(symbol, val)
+		return
+	}
+	s.Functions[symbol] = val
 }

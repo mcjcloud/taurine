@@ -55,6 +55,19 @@ func (v *VariableDecleration) String() string {
 	return fmt.Sprintf("var (%s) %s = %s", v.SymbolType, v.Symbol, v.Value)
 }
 
+// FunctionDecleration represents a function decleration
+type FunctionDecleration struct {
+	Symbol     string                 `json:"symbol"`
+	ReturnType string                 `json:"returnType"`
+	Parameters []*VariableDecleration `json:"parameters"`
+	Body       Statement              `json:"body"`
+}
+
+func (f *FunctionDecleration) do() {}
+func (f *FunctionDecleration) String() string {
+	return fmt.Sprintf("func (%s) %s(%s) %s", f.ReturnType, f.Symbol, f.Parameters, f.Body)
+}
+
 // EtchStatement represents an etch call
 type EtchStatement struct {
 	Expressions []Expression `json:"expressions"`
@@ -115,6 +128,8 @@ const (
 	STR = "str"
 	// BOOL represents a boolean type
 	BOOL = "bool"
+	// FUNC represents the function keyword
+	FUNC = "func"
 )
 
 // Operator represents an operator
@@ -133,7 +148,7 @@ const (
 
 // IsStatementPrefix returns true if the symbol is a statement prefix
 func (str Symbol) IsStatementPrefix() bool {
-	return str == IF || str == FOR || str == WHILE || str == VAR || str == ETCH || str == READ || str == RETURN
+	return str == IF || str == FOR || str == WHILE || str == VAR || str == ETCH || str == READ || str == RETURN || str == FUNC
 }
 
 // IsDataType returns true if the symbol represents a data type
@@ -169,6 +184,17 @@ type BooleanLiteral struct {
 func (b *BooleanLiteral) evaluate() {}
 func (b *BooleanLiteral) String() string {
 	return fmt.Sprintf("%v", b.Value)
+}
+
+// FunctionCall represents an expression which needs to call a function
+type FunctionCall struct {
+	Function  string       `json:"function"`
+	Arguments []Expression `json:"arguments"`
+}
+
+func (f *FunctionCall) evaluate() {}
+func (f *FunctionCall) String() string {
+	return fmt.Sprintf("%s(%s)", f.Function, f.Arguments)
 }
 
 // Identifier represents a variable or some kind of reference

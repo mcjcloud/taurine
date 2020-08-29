@@ -36,6 +36,10 @@ func executeStatement(stmt ast.Statement, scope *Scope) error {
 		if err := executeVariableDecleration(declStmt, scope); err != nil {
 			return err
 		}
+	} else if funcStmt, ok := stmt.(*ast.FunctionDecleration); ok {
+		if err := executeFunctionDecleration(funcStmt, scope); err != nil {
+			return err
+		}
 	} else if expStmt, ok := stmt.(*ast.ExpressionStatement); ok {
 		_, err := evaluateExpression(expStmt.Expression, scope)
 		return err
@@ -123,6 +127,14 @@ func executeVariableDecleration(stmt *ast.VariableDecleration, scope *Scope) err
 	return nil
 }
 
+func executeFunctionDecleration(stmt *ast.FunctionDecleration, scope *Scope) error {
+	if scope.Functions[stmt.Symbol] != nil || (scope.Parent != nil && scope.Parent.GetFunction(stmt.Symbol) != nil) {
+		return fmt.Errorf("function '%s' already exists", stmt.Symbol)
+	}
+	scope.SetFunction(stmt.Symbol, stmt)
+	return nil
+}
+
 func evaluateExpression(exp ast.Expression, scope *Scope) (ast.Expression, error) {
 	if op, ok := exp.(*ast.OperationExpression); ok {
 		return evaluateOperation(op, scope)
@@ -140,6 +152,31 @@ func evaluateExpression(exp ast.Expression, scope *Scope) (ast.Expression, error
 		// update the scope and return the evaluated value
 		scope.Set(asn.Identifier.Name, val)
 		return val, nil
+	} else if fnCall, ok := exp.(*ast.FunctionCall); ok {
+		return evaluateFunctionCall(fnCall, scope)
 	}
 	return exp, nil
+}
+
+func evaluateFunctionCall(call *ast.FunctionCall, scope *Scope) (ast.Expression, error) {
+	decl := scope.GetFunction(call.Function)
+	if decl == nil {
+		return nil, fmt.Errorf("function name '%s' was never declared", call.Function)
+	}
+	if len(decl.Parameters) != len(call.Arguments) {
+		return nil, fmt.Errorf("expected '%d' arguments but got '%d' for call to '%s'", len(decl.Parameters), len(call.Arguments), call.Function)
+	}
+	// evaluate arguments and populate scope
+	fnScope := NewScopeWithParent(scope)
+	for i, arg := range call.Arguments {
+		exp, err := evaluateExpression(arg, scope)
+		if err != nil {
+			return nil, err
+		}
+		// TODO: create a good way to compare data type of argument of parameter
+		fnScope.Set(decl.Parameters[i].Symbol, exp)
+	}
+	// execute statements
+	// TODO: figure out how to handle return statement
+	return nil, executeStatement(decl.Body, fnScope)
 }
