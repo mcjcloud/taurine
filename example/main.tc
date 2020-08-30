@@ -1,6 +1,8 @@
-func (num) addTwo(num a, num b) {
-  etch a, b;
+func (num) factorial(num n) {
+  while n == 1 {
+    return 1;
+  }
+  return n * factorial(n - 1);
 }
 
-var (num) a = 2;
-addTwo(a, 4 + 2);
+etch factorial(3);

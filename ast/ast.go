@@ -68,6 +68,16 @@ func (f *FunctionDecleration) String() string {
 	return fmt.Sprintf("func (%s) %s(%s) %s", f.ReturnType, f.Symbol, f.Parameters, f.Body)
 }
 
+// ReturnStatement represents a statement to return a value
+type ReturnStatement struct {
+	Value Expression `json:"value"`
+}
+
+func (r *ReturnStatement) do() {}
+func (r *ReturnStatement) String() string {
+	return fmt.Sprintf("return %s", r.Value)
+}
+
 // EtchStatement represents an etch call
 type EtchStatement struct {
 	Expressions []Expression `json:"expressions"`

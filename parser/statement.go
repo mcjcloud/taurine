@@ -36,6 +36,8 @@ func parseStatement(tkn *lexer.Token, it *lexer.TokenIterator) (ast.Statement, e
 			return parseWhileLoop(tkn, it)
 		} else if tkn.Value == ast.FUNC {
 			return parseFunction(tkn, it)
+		} else if tkn.Value == ast.RETURN {
+			return parseReturnStatement(tkn, it)
 		}
 	} else {
 		// it's an expression (identifier)
@@ -115,6 +117,9 @@ func parseAssignmentExpression(tkn *lexer.Token, dataType ast.Symbol, it *lexer.
 		}
 	}
 	if _, ok := exp.(*ast.OperationExpression); ok {
+		return exp, nil
+	}
+	if _, ok := exp.(*ast.FunctionCall); ok {
 		return exp, nil
 	}
 	return nil, errors.New("assigned type does not match initial value")
@@ -261,4 +266,16 @@ func parseFunction(tkn *lexer.Token, it *lexer.TokenIterator) (*ast.FunctionDecl
 		Parameters: params,
 		Body:       body,
 	}, nil
+}
+
+func parseReturnStatement(tkn *lexer.Token, it *lexer.TokenIterator) (*ast.ReturnStatement, error) {
+	exp, err := parseExpression(it.Next(), it, nil)
+	if err != nil {
+		return nil, err
+	}
+	// expect a semicolon
+	if nxt := it.Next(); nxt.Type != ";" {
+		return nil, errors.New("expected semicolon to end return statement")
+	}
+	return &ast.ReturnStatement{Value: exp}, nil
 }

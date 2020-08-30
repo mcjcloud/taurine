@@ -4,9 +4,10 @@ import "github.com/mcjcloud/taurine/ast"
 
 // Scope represents data within a scope during execution
 type Scope struct {
-	Parent    *Scope
-	Variables map[string]ast.Expression
-	Functions map[string]*ast.FunctionDecleration
+	Parent      *Scope                              // the parent scope
+	Variables   map[string]ast.Expression           // a map of variable names to values
+	Functions   map[string]*ast.FunctionDecleration // a map of function name to declerations
+	ReturnValue ast.Expression                      // if the scope is for a function, this will hold the return value
 }
 
 // NewScope creates a new Scope

@@ -50,6 +50,11 @@ func executeStatement(stmt ast.Statement, scope *Scope) error {
 			if err != nil {
 				return err
 			}
+			// if a block exists within the current scope, the return value should propogate up
+			if subScope.ReturnValue != nil {
+				scope.ReturnValue = subScope.ReturnValue
+				break
+			}
 		}
 	} else if whileStmt, ok := stmt.(*ast.WhileLoopStatement); ok {
 		exp, err := evaluateExpression(whileStmt.Condition, scope)
@@ -71,10 +76,22 @@ func executeStatement(stmt ast.Statement, scope *Scope) error {
 				if !ok {
 					return errors.New("while expression is no longer boolean")
 				}
+				// if there is a return value, the loop should end
+				if subScope.ReturnValue != nil {
+					scope.ReturnValue = subScope.ReturnValue
+					break
+				}
 			}
 		} else {
 			return errors.New("while expression must evaluate to boolean")
 		}
+	} else if rtnStmt, ok := stmt.(*ast.ReturnStatement); ok {
+		exp, err := evaluateExpression(rtnStmt.Value, scope)
+		if err != nil {
+			return err
+		}
+		scope.ReturnValue = exp
+		return nil
 	} else {
 		return errors.New("unrecognized statement")
 	}
@@ -89,7 +106,12 @@ func executeEtchStatement(stmt *ast.EtchStatement, scope *Scope) error {
 		} else if strExp, ok := exp.(*ast.StringLiteral); ok {
 			toEtch = append(toEtch, strExp.String())
 		} else if idExp, ok := exp.(*ast.Identifier); ok {
-			toEtch = append(toEtch, scope.Get(idExp.Name).String())
+			idVal := scope.Get(idExp.Name)
+			if idVal != nil {
+				toEtch = append(toEtch, idVal.String())
+			} else {
+				toEtch = append(toEtch, "nil")
+			}
 		} else {
 			expEval, err := evaluateExpression(exp, scope)
 			if err != nil {
@@ -178,5 +200,8 @@ func evaluateFunctionCall(call *ast.FunctionCall, scope *Scope) (ast.Expression,
 	}
 	// execute statements
 	// TODO: figure out how to handle return statement
-	return nil, executeStatement(decl.Body, fnScope)
+	if err := executeStatement(decl.Body, fnScope); err != nil {
+		return nil, err
+	}
+	return fnScope.ReturnValue, nil
 }
