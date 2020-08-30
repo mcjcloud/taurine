@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
 	"io/ioutil"
 	"os"
@@ -21,9 +22,17 @@ func main() {
 		os.Exit(1)
 	}
 	src := string(bytes)
+
+	// check for '--ast' flag
+	var printAst bool
+	if len(os.Args) >= 3 && os.Args[2] == "--ast" {
+		printAst = true
+	}
 	stmts, err := parser.Parse(lexer.Analyze(src))
-	// j, _ := json.Marshal(stmts)
-	// fmt.Printf("%s\n", string(j))
+	if printAst {
+		j, _ := json.Marshal(stmts)
+		fmt.Printf("%s\n", string(j))
+	}
 	if err != nil {
 		fmt.Printf("Parsing Error: %v\n", err)
 		os.Exit(1)
