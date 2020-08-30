@@ -103,6 +103,17 @@ func (r *ReadStatement) String() string {
 	return fmt.Sprintf("read %s, %s", r.Identifier, r.Prompt)
 }
 
+// IfStatement represents an if statement
+type IfStatement struct {
+	Condition Expression `json:"condition"`
+	Statement Statement  `json:"statement"`
+}
+
+func (i *IfStatement) do() {}
+func (i *IfStatement) String() string {
+	return fmt.Sprintf("if %s %s", i.Condition, i.Statement)
+}
+
 // WhileLoopStatement represents a for loop
 type WhileLoopStatement struct {
 	Condition Expression `json:"condition"`
@@ -119,7 +130,7 @@ type Symbol string
 
 const (
 	// IF represents the if keyword
-	IF Symbol = "if"
+	IF = "if"
 	// FOR represents the for keyword
 	FOR = "for"
 	// WHILE represents the while keyword

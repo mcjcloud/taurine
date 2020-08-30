@@ -56,6 +56,20 @@ func executeStatement(stmt ast.Statement, scope *Scope) error {
 				break
 			}
 		}
+	} else if ifStmt, ok := stmt.(*ast.IfStatement); ok {
+		exp, err := evaluateExpression(ifStmt.Condition, scope)
+		if err != nil {
+			return err
+		}
+		if boolExp, ok := exp.(*ast.BooleanLiteral); ok {
+			if boolExp.Value {
+				if err := executeStatement(ifStmt.Statement, scope); err != nil {
+					return err
+				}
+			}
+			return nil
+		}
+		return errors.New("if expression must evaluate to boolean")
 	} else if whileStmt, ok := stmt.(*ast.WhileLoopStatement); ok {
 		exp, err := evaluateExpression(whileStmt.Condition, scope)
 		if err != nil {
@@ -199,7 +213,6 @@ func evaluateFunctionCall(call *ast.FunctionCall, scope *Scope) (ast.Expression,
 		fnScope.Set(decl.Parameters[i].Symbol, exp)
 	}
 	// execute statements
-	// TODO: figure out how to handle return statement
 	if err := executeStatement(decl.Body, fnScope); err != nil {
 		return nil, err
 	}

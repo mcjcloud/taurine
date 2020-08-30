@@ -32,6 +32,8 @@ func parseStatement(tkn *lexer.Token, it *lexer.TokenIterator) (ast.Statement, e
 			return parseEtchStatement(tkn, it)
 		} else if tkn.Value == ast.READ {
 			return parseReadStatement(tkn, it)
+		} else if tkn.Value == ast.IF {
+			return parseIfStatement(tkn, it)
 		} else if tkn.Value == ast.WHILE {
 			return parseWhileLoop(tkn, it)
 		} else if tkn.Value == ast.FUNC {
@@ -180,6 +182,22 @@ func parseReadStatement(tkn *lexer.Token, it *lexer.TokenIterator) (*ast.ReadSta
 		}, nil
 	}
 	return nil, errors.New("expected prompt after ','")
+}
+
+func parseIfStatement(tkn *lexer.Token, it *lexer.TokenIterator) (*ast.IfStatement, error) {
+	exp, err := parseExpression(it.Next(), it, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	stmt, err := parseStatement(it.Next(), it)
+	if err != nil {
+		return nil, err
+	}
+	return &ast.IfStatement{
+		Condition: exp,
+		Statement: stmt,
+	}, nil
 }
 
 func parseWhileLoop(tkn *lexer.Token, it *lexer.TokenIterator) (*ast.WhileLoopStatement, error) {
