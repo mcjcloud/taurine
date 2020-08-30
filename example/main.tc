@@ -5,4 +5,5 @@ func (num) factorial(num n) {
   return n * factorial(n - 1);
 }
 
-etch factorial(3);
+var (num) myFac = factorial(5);
+etch myFac;

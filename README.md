@@ -11,3 +11,5 @@ Follow these steps to clone and build taurine (requires Go to be installed).
 3. Run `./taurine ./example/main.tc`
 
 You can also run `go install` to install taurine to your `GOBIN`
+
+To view a list of language features, check out [the spec](https://github.com/mcjcloud/taurine/blob/master/docs/spec.md)
