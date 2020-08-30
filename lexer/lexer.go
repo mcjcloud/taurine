@@ -32,6 +32,28 @@ func Analyze(source string) (tkns []*Token) {
 			panic(err)
 		}
 
+		if c == '/' {
+			// check if the next character is a /
+			nxt, err := srcReader.ReadByte()
+			if err != nil {
+				panic(err)
+			}
+			if nxt == '/' {
+				// eat every character until a newline is found
+				for nxt != '\n' && nxt != '\r' {
+					nxt, err = srcReader.ReadByte()
+					if err != nil {
+						panic(err)
+					}
+				}
+				continue
+			} else {
+				// otherwise put both of the characters back and keep going
+				srcReader.UnreadByte()
+				srcReader.UnreadByte()
+			}
+		}
+
 		if isWhitespace(c) {
 			continue
 		} else if c == '"' {

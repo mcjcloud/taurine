@@ -1,3 +1,4 @@
+// this is a comment
 func (num) factorial(num n) {
   if n == 1 {
     return 1;
