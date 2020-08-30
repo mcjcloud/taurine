@@ -45,12 +45,6 @@ func (num) factorial(num n) {
 etch factorial(5); // "120.000000"
 ```
 
-# COMING SOON
-
-The below features have not been implemented yet.
-
-Note that order of operations is not correct at the moment.
-
 ## Expression grouping
 
 Expressions are grouped together with square brackets `[]`.
@@ -59,6 +53,12 @@ Expressions are grouped together with square brackets `[]`.
 var (num) x = 3 * 2 + 4;   // 10
 var (num) y = 3 * [2 + 4]; // 18
 ```
+
+# COMING SOON
+
+The below features have not been implemented yet.
+
+Note that order of operations is not correct at the moment.
 
 ## Indexing
 
