@@ -18,7 +18,7 @@ To declare a variable, use the `var` keyword. The syntax is `var (type) symbol =
 ```
 var (num) myAge = 22;
 var (str) myName = "Brayden";
-etch myName, " is ", myAge, " years old."; // "<name> is <age> years old."
+etch myName, " is ", myAge, " years old."; // "Brayden is 22 years old."
 ```
 
 ## Read statement
