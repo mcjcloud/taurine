@@ -190,6 +190,8 @@ func evaluateExpression(exp ast.Expression, scope *Scope) (ast.Expression, error
 		return val, nil
 	} else if fnCall, ok := exp.(*ast.FunctionCall); ok {
 		return evaluateFunctionCall(fnCall, scope)
+	} else if grpExp, ok := exp.(*ast.GroupExpression); ok {
+		return evaluateExpression(grpExp.Expression, scope)
 	}
 	return exp, nil
 }

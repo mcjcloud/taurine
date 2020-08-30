@@ -250,3 +250,13 @@ func (a *AssignmentExpression) evaluate() {}
 func (a *AssignmentExpression) String() string {
 	return fmt.Sprintf("%s = %s", a.Identifier, a.Value)
 }
+
+// GroupExpression represents an expression inside of []
+type GroupExpression struct {
+	Expression Expression `json:"expression"`
+}
+
+func (g *GroupExpression) evaluate() {}
+func (g *GroupExpression) String() string {
+	return fmt.Sprintf("[%s]", g.Expression)
+}

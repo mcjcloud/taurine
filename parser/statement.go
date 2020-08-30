@@ -124,6 +124,9 @@ func parseAssignmentExpression(tkn *lexer.Token, dataType ast.Symbol, it *lexer.
 	if _, ok := exp.(*ast.FunctionCall); ok {
 		return exp, nil
 	}
+	if _, ok := exp.(*ast.GroupExpression); ok {
+		return exp, nil
+	}
 	return nil, errors.New("assigned type does not match initial value")
 }
 

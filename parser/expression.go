@@ -29,6 +29,17 @@ func parseExpression(tkn *lexer.Token, it *lexer.TokenIterator, exp ast.Expressi
 				return parseFunctionCall(tkn, it)
 			}
 			return parseExpression(tkn, it, &ast.Identifier{Name: tkn.Value})
+		} else if tkn.Type == "[" {
+			grpExp, err := parseExpression(it.Next(), it, nil)
+			if err != nil {
+				return nil, err
+			}
+			// expect a ]
+			nxt := it.Next()
+			if nxt == nil || nxt.Type != "]" {
+				return nil, errors.New("expected ']' to end group expression")
+			}
+			return parseExpression(nxt, it, &ast.GroupExpression{Expression: grpExp})
 		} else {
 			return nil, errors.New("unexpected start of expression")
 		}
@@ -77,6 +88,9 @@ func parseExpression(tkn *lexer.Token, it *lexer.TokenIterator, exp ast.Expressi
 			return &ast.BooleanLiteral{Value: false}, nil
 		}
 		return &ast.Identifier{Name: tkn.Value}, nil
+	} else if grpExp, ok := exp.(*ast.GroupExpression); ok {
+		// this ends a group expression
+		return grpExp, nil
 	} else {
 		return nil, errors.New("unexpected start of expression")
 	}

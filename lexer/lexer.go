@@ -15,7 +15,7 @@ func isWhitespace(c byte) bool {
 }
 
 func isSpecial(c byte) bool {
-	return c == '{' || c == '}' || c == '(' || c == ')' || c == '@' || c == ',' || c == ';' || c == ':'
+	return c == '{' || c == '}' || c == '(' || c == ')' || c == '@' || c == ',' || c == ';' || c == ':' || c == '[' || c == ']'
 }
 
 func isOperation(c byte) bool {
