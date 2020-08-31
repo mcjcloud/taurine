@@ -1,2 +1,76 @@
-var (str) x = "test" + "ing";
-etch x;
+func (num) pow(num n, num p) {
+  var (num) i = 0;
+  var (num) res = 1;
+  while i < p {
+    res = res * n;
+    i = i + 1;
+  }
+  return res;
+}
+
+func (num) mapChar(str c) {
+  if c == "0" {
+    return 0;
+  }
+  if c == "1" {
+    return 1;
+  }
+  if c == "2" {
+    return 2;
+  }
+  if c == "3" {
+    return 3;
+  }
+  if c == "4" {
+    return 4;
+  }
+  if c == "5" {
+    return 5;
+  }
+  if c == "6" {
+    return 6;
+  }
+  if c == "7" {
+    return 7;
+  }
+  if c == "8" {
+    return 8;
+  }
+  if c == "9" {
+    return 9;
+  }
+  return 10;
+}
+
+func (num) strToNum(str s) {
+  var (num) i = len(s);
+  var (num) res = 0;
+  while i > 0 {
+    var (str) char = s@[i - 1];
+    var (num) numVal = mapChar(char);
+    if numVal == 10 {
+      return 0;
+    }
+    var (num) l = len(s);
+    var (num) p = pow(10, l - i);
+    res = res + [numVal * p];
+    i = i - 1;
+  }
+  return res;
+}
+
+var (num) ans = 6;
+var (str) strGuess;
+read strGuess, "Guess a number: ";
+var (num) guess = strToNum(strGuess);
+while guess != ans {
+  if guess < ans {
+    etch "Too low :(";
+  }
+  if guess > ans {
+    etch "Too high :(";
+  }
+  read strGuess, "Guess again: ";
+  guess = strToNum(strGuess);
+}
+etch "Congrats!";

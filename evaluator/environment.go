@@ -2,12 +2,18 @@ package evaluator
 
 import "github.com/mcjcloud/taurine/ast"
 
+// Function represents a function in a particular scope
+type Function struct {
+	Scope       *Scope
+	Decleration *ast.FunctionDecleration
+}
+
 // Scope represents data within a scope during execution
 type Scope struct {
-	Parent      *Scope                              // the parent scope
-	Variables   map[string]ast.Expression           // a map of variable names to values
-	Functions   map[string]*ast.FunctionDecleration // a map of function name to declerations
-	ReturnValue ast.Expression                      // if the scope is for a function, this will hold the return value
+	Parent      *Scope                    // the parent scope
+	Variables   map[string]ast.Expression // a map of variable names to values
+	Functions   map[string]*Function      // a map of function name to declerations
+	ReturnValue ast.Expression            // if the scope is for a function, this will hold the return value
 }
 
 // NewScope creates a new Scope
@@ -15,7 +21,7 @@ func NewScope() *Scope {
 	return &Scope{
 		Parent:    nil,
 		Variables: map[string]ast.Expression{},
-		Functions: map[string]*ast.FunctionDecleration{},
+		Functions: map[string]*Function{},
 	}
 }
 
@@ -48,7 +54,7 @@ func (s *Scope) Set(symbol string, val ast.Expression) {
 }
 
 // GetFunction gets a function definition
-func (s *Scope) GetFunction(symbol string) *ast.FunctionDecleration {
+func (s *Scope) GetFunction(symbol string) *Function {
 	if val, ok := s.Functions[symbol]; ok {
 		return val
 	}
@@ -64,5 +70,8 @@ func (s *Scope) SetFunction(symbol string, val *ast.FunctionDecleration) {
 		s.Parent.SetFunction(symbol, val)
 		return
 	}
-	s.Functions[symbol] = val
+	s.Functions[symbol] = &Function{
+		Decleration: val,
+		Scope:       s,
+	}
 }

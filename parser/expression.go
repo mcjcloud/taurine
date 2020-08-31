@@ -27,7 +27,11 @@ func parseExpression(tkn *lexer.Token, it *lexer.TokenIterator, exp ast.Expressi
 		} else if tkn.Type == "symbol" {
 			// check if the identifier is a function call
 			if p := it.Peek(); p != nil && p.Type == "(" {
-				return parseFunctionCall(tkn, it)
+				fnCall, err := parseFunctionCall(tkn, it)
+				if err != nil {
+					return nil, err
+				}
+				return parseExpression(it.Current(), it, fnCall)
 			}
 			return parseExpression(tkn, it, &ast.Identifier{Name: tkn.Value})
 		} else if tkn.Type == "[" {
@@ -111,6 +115,8 @@ func parseExpression(tkn *lexer.Token, it *lexer.TokenIterator, exp ast.Expressi
 	} else if grpExp, ok := exp.(*ast.GroupExpression); ok {
 		// this ends a group expression
 		return grpExp, nil
+	} else if fnExp, ok := exp.(*ast.FunctionCall); ok {
+		return fnExp, nil
 	} else {
 		return nil, errors.New("unexpected start of expression")
 	}

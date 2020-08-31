@@ -157,7 +157,7 @@ func executeVariableDecleration(stmt *ast.VariableDecleration, scope *Scope) err
 	if err != nil {
 		return err
 	}
-	if scope.Variables[stmt.Symbol] != nil || (scope.Parent != nil && scope.Parent.Get(stmt.Symbol) != nil) {
+	if scope.Variables[stmt.Symbol] != nil {
 		return fmt.Errorf("variable '%s' already exists", stmt.Symbol)
 	}
 	scope.Set(stmt.Symbol, val)
@@ -165,7 +165,7 @@ func executeVariableDecleration(stmt *ast.VariableDecleration, scope *Scope) err
 }
 
 func executeFunctionDecleration(stmt *ast.FunctionDecleration, scope *Scope) error {
-	if scope.Functions[stmt.Symbol] != nil || (scope.Parent != nil && scope.Parent.GetFunction(stmt.Symbol) != nil) {
+	if scope.Functions[stmt.Symbol] != nil {
 		return fmt.Errorf("function '%s' already exists", stmt.Symbol)
 	}
 	scope.SetFunction(stmt.Symbol, stmt)
@@ -200,28 +200,35 @@ func evaluateExpression(exp ast.Expression, scope *Scope) (ast.Expression, error
 }
 
 func evaluateFunctionCall(call *ast.FunctionCall, scope *Scope) (ast.Expression, error) {
-	decl := scope.GetFunction(call.Function)
-	if decl == nil {
+	fn := scope.GetFunction(call.Function)
+	if fn == nil {
+		// TODO: make this cleaner, maybe move built-in functions someplace else
+		if call.Function == "len" {
+			if len(call.Arguments) != 1 {
+				return nil, errors.New("len takes only one argument")
+			}
+			return builtInLen(call.Arguments[0], scope)
+		}
 		return nil, fmt.Errorf("function name '%s' was never declared", call.Function)
 	}
+	decl := fn.Decleration
 	if len(decl.Parameters) != len(call.Arguments) {
 		return nil, fmt.Errorf("expected '%d' arguments but got '%d' for call to '%s'", len(decl.Parameters), len(call.Arguments), call.Function)
 	}
 	// evaluate arguments and populate scope
-	fnScope := NewScopeWithParent(scope)
 	for i, arg := range call.Arguments {
 		exp, err := evaluateExpression(arg, scope)
 		if err != nil {
 			return nil, err
 		}
 		// TODO: create a good way to compare data type of argument of parameter
-		fnScope.Set(decl.Parameters[i].Symbol, exp)
+		fn.Scope.Set(decl.Parameters[i].Symbol, exp)
 	}
 	// execute statements
-	if err := executeStatement(decl.Body, fnScope); err != nil {
+	if err := executeStatement(decl.Body, fn.Scope); err != nil {
 		return nil, err
 	}
-	return fnScope.ReturnValue, nil
+	return fn.Scope.ReturnValue, nil
 }
 
 func evaluateIndexExpression(exp *ast.IndexExpression, scope *Scope) (ast.Expression, error) {
