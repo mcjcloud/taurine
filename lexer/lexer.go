@@ -9,6 +9,7 @@ import (
 
 var numberRe = regexp.MustCompile(`[.0-9]`)
 var symbolRe = regexp.MustCompile(`[_a-zA-Z0-9]`)
+var boolRe = regexp.MustCompile(`(^true$)|(^false$)`)
 
 func isWhitespace(c byte) bool {
 	return c == ' ' || c == '\n' || c == '\t' || c == '\r'
@@ -79,7 +80,12 @@ func Analyze(source string) (tkns []*Token) {
 		} else if numberRe.Match([]byte{c}) {
 			tkns = append(tkns, scan(c, srcReader, numberRe, "number"))
 		} else if symbolRe.Match(([]byte{c})) {
-			tkns = append(tkns, scan(c, srcReader, symbolRe, "symbol"))
+			tkn := scan(c, srcReader, symbolRe, "symbol")
+			if boolRe.MatchString(tkn.Value) {
+				tkns = append(tkns, &Token{Type: "bool", Value: tkn.Value})
+			} else {
+				tkns = append(tkns, tkn)
+			}
 		} else {
 			panic(fmt.Sprintf("Unexpected character %v\n", c))
 		}

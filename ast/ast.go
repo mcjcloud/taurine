@@ -240,6 +240,17 @@ func (o *OperationExpression) String() string {
 	return fmt.Sprintf("%s %s %s", o.LeftExpression.String(), o.Operator, o.RightExpression.String())
 }
 
+// IndexExpression represents the '@' expression
+type IndexExpression struct {
+	Value Expression `json:"value"`
+	Index Expression `json:"index"`
+}
+
+func (i *IndexExpression) evaluate() {}
+func (i *IndexExpression) String() string {
+	return fmt.Sprintf("%s@%s", i.Value, i.Index)
+}
+
 // AssignmentExpression represents an expression which assigns a new value to a variable
 type AssignmentExpression struct {
 	Identifier *Identifier `json:"identifier"`

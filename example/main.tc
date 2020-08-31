@@ -1,10 +1,2 @@
-// this is a comment
-func (num) factorial(num n) {
-  if n == 1 {
-    return 1;
-  }
-  return n * factorial(n - 1);
-}
-
-var (num) myFac = factorial(5);
-etch myFac;
+var (str) x = "test" + "ing";
+etch x;
