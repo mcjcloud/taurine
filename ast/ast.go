@@ -125,6 +125,8 @@ func (w *WhileLoopStatement) String() string {
 	return w.Condition.String()
 }
 
+// TODO: add for loops
+
 // Symbol is a type which represents the possible beginning symbols of a statement
 type Symbol string
 
@@ -149,6 +151,8 @@ const (
 	STR = "str"
 	// BOOL represents a boolean type
 	BOOL = "bool"
+	// ARR represents an array type
+	ARR = "arr"
 	// FUNC represents the function keyword
 	FUNC = "func"
 )
@@ -174,7 +178,7 @@ func (str Symbol) IsStatementPrefix() bool {
 
 // IsDataType returns true if the symbol represents a data type
 func (str Symbol) IsDataType() bool {
-	return str == NUM || str == STR || str == BOOL
+	return str == NUM || str == STR || str == BOOL || str == ARR
 }
 
 // NumberLiteral represents the num data type
@@ -270,4 +274,23 @@ type GroupExpression struct {
 func (g *GroupExpression) evaluate() {}
 func (g *GroupExpression) String() string {
 	return fmt.Sprintf("[%s]", g.Expression)
+}
+
+// ArrayExpression represents an array of expressions e.g. [exp1, exp2]
+type ArrayExpression struct {
+	Expressions []Expression `json:"expressions"`
+}
+
+func (a *ArrayExpression) evaluate() {}
+func (a *ArrayExpression) String() string {
+	str := "["
+	for i, e := range a.Expressions {
+		if i == 0 {
+			str += e.String()
+		} else {
+			str += fmt.Sprintf(", %v", e.String())
+		}
+	}
+	str += "]"
+	return str
 }

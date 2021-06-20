@@ -193,8 +193,22 @@ func evaluateExpression(exp ast.Expression, scope *Scope) (ast.Expression, error
 		return evaluateFunctionCall(fnCall, scope)
 	} else if grpExp, ok := exp.(*ast.GroupExpression); ok {
 		return evaluateExpression(grpExp.Expression, scope)
+	} else if arrExp, ok := exp.(*ast.ArrayExpression); ok {
+		return evaluateArrayExpression(arrExp, scope)
 	} else if idxExp, ok := exp.(*ast.IndexExpression); ok {
 		return evaluateIndexExpression(idxExp, scope)
+	}
+	return exp, nil
+}
+
+func evaluateArrayExpression(arr *ast.ArrayExpression, scope *Scope) (ast.Expression, error) {
+	exp := &ast.ArrayExpression{Expressions: make([]ast.Expression, len(arr.Expressions))}
+	for i, el := range arr.Expressions {
+		val, err := evaluateExpression(el, scope)
+		if err != nil {
+			return nil, err
+		}
+		exp.Expressions[i] = val
 	}
 	return exp, nil
 }
@@ -243,19 +257,25 @@ func evaluateIndexExpression(exp *ast.IndexExpression, scope *Scope) (ast.Expres
 	}
 	index, ok := indExp.(*ast.NumberLiteral)
 	if !ok || math.Floor(index.Value) != index.Value || index.Value < 0 {
-		return nil, errors.New("index must be a whole number greater than 0")
+		return nil, errors.New("index must evaluate to a whole number >= 0")
 	}
 	// left should be either an array or a string literal
-	// TODO: add array support
 	i := int(index.Value)
 	if strExp, ok := left.(*ast.StringLiteral); ok {
 		// check array-out-of-bounds
-		if i > len(strExp.Value)-1 {
+		if i < 0 || i > len(strExp.Value)-1 {
 			return nil, fmt.Errorf("Index '%d' is out of bounds for string of length %d", i, len(strExp.Value))
 		}
 		return &ast.StringLiteral{
 			Value: string(strExp.Value[i]),
 		}, nil
+	}
+	if arrExp, ok := left.(*ast.ArrayExpression); ok {
+		// check array out of bounds
+		if i < 0 || i > len(arrExp.Expressions)-1 {
+			return nil, fmt.Errorf("Index '%d' is out of bounds for array of length %d", i, len(arrExp.Expressions))
+		}
+		return arrExp.Expressions[i], nil // the array values should already be evaluated
 	}
 	return nil, errors.New("cannot use '@' on non-string or non-array type")
 }

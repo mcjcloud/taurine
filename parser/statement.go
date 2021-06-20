@@ -117,6 +117,10 @@ func parseAssignmentExpression(tkn *lexer.Token, dataType ast.Symbol, it *lexer.
 		if _, ok := exp.(*ast.BooleanLiteral); ok {
 			return exp, nil
 		}
+	} else if dataType == ast.ARR {
+		if _, ok := exp.(*ast.ArrayExpression); ok {
+			return exp, nil
+		}
 	}
 	if _, ok := exp.(*ast.OperationExpression); ok {
 		return exp, nil

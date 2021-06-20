@@ -1,0 +1,33 @@
+{
+  "statements": [
+    {
+      "symbol": "x",
+      "symbolType": "arr",
+      "value": {
+        "expressions": [{ "Value": 1 }, { "Value": 2 }, { "Value": 3 }]
+      }
+    },
+    {
+      "expressions": [
+        {
+          "value": { "Name": "x" },
+          "index": {
+            "operator": "+",
+            "leftExpression": { "Value": 2 },
+            "rightExpression": {
+              "value": { "Name": "x" },
+              "index": {
+                "operator": "+",
+                "leftExpression": { "Value": 1 },
+                "rightExpression": {
+                  "value": { "Name": "x" },
+                  "index": { "Value": 0 }
+                }
+              }
+            }
+          }
+        }
+      ]
+    }
+  ]
+}
