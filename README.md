@@ -8,7 +8,7 @@ Follow these steps to clone and build taurine (requires Go to be installed).
 
 1. Run `git clone https://github.com/mcjcloud/taurine.git`
 2. From the project directory, run `go build`
-3. Run `./taurine ./example/main.tc`
+3. Run `./taurine ./example/num_guesser.tc`. See other example programs in the example directory.
 4. Use the `--ast` flag after the filename to print the Abstract Syntax Tree in JSON format
 
 You can also run `go install` to install taurine to your `GOBIN`
