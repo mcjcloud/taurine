@@ -169,7 +169,17 @@ const (
 	MULTIPLY = "*"
 	// DIVIDE represents /
 	DIVIDE = "/"
+	// AT represents @
+	AT = "@"
 )
+
+var PRECEDENCE = map[Operator]int{
+	PLUS:     1,
+	MINUS:    1,
+	MULTIPLY: 2,
+	DIVIDE:   2,
+	AT:       3,
+}
 
 // IsStatementPrefix returns true if the symbol is a statement prefix
 func (str Symbol) IsStatementPrefix() bool {
@@ -241,18 +251,15 @@ type OperationExpression struct {
 
 func (o *OperationExpression) evaluate() {}
 func (o *OperationExpression) String() string {
-	return fmt.Sprintf("%s %s %s", o.LeftExpression.String(), o.Operator, o.RightExpression.String())
-}
-
-// IndexExpression represents the '@' expression
-type IndexExpression struct {
-	Value Expression `json:"value"`
-	Index Expression `json:"index"`
-}
-
-func (i *IndexExpression) evaluate() {}
-func (i *IndexExpression) String() string {
-	return fmt.Sprintf("%s@%s", i.Value, i.Index)
+	var l string
+	if o.LeftExpression != nil {
+		l = o.LeftExpression.String()
+	}
+	var r string
+	if o.RightExpression != nil {
+		r = o.RightExpression.String()
+	}
+	return fmt.Sprintf("%s(%s, %s)", o.Operator, l, r)
 }
 
 // AssignmentExpression represents an expression which assigns a new value to a variable

@@ -28,7 +28,8 @@ func main() {
 	if len(os.Args) >= 3 && os.Args[2] == "--ast" {
 		printAst = true
 	}
-	stmts, err := parser.Parse(lexer.Analyze(src))
+	tkns := lexer.Analyze(src)
+	stmts, err := parser.Parse(tkns)
 	if printAst {
 		j, _ := json.Marshal(stmts)
 		fmt.Printf("%s\n", string(j))

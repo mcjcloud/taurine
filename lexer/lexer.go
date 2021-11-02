@@ -16,11 +16,11 @@ func isWhitespace(c byte) bool {
 }
 
 func isSpecial(c byte) bool {
-	return c == '{' || c == '}' || c == '(' || c == ')' || c == '@' || c == ',' || c == ';' || c == ':' || c == '[' || c == ']'
+	return c == '{' || c == '}' || c == '(' || c == ')' || c == ',' || c == ';' || c == ':' || c == '[' || c == ']'
 }
 
 func isOperation(c byte) bool {
-	return c == '+' || c == '-' || c == '*' || c == '/' || c == '%' || c == '!' || c == '<' || c == '>'
+	return c == '+' || c == '-' || c == '*' || c == '/' || c == '%' || c == '!' || c == '<' || c == '>' || c == '@'
 }
 
 // Analyze creates a series of tokens from source code
@@ -31,6 +31,11 @@ func Analyze(source string) (tkns []*Token) {
 		c, err := srcReader.ReadByte()
 		if err != nil {
 			panic(err)
+		}
+
+		// skip whitespace
+		if isWhitespace(c) {
+			continue
 		}
 
 		if c == '/' {
@@ -51,13 +56,10 @@ func Analyze(source string) (tkns []*Token) {
 			} else {
 				// otherwise put both of the characters back and keep going
 				srcReader.UnreadByte()
-				srcReader.UnreadByte()
 			}
 		}
 
-		if isWhitespace(c) {
-			continue
-		} else if c == '"' {
+		if c == '"' {
 			tkns = append(tkns, scanString(srcReader))
 		} else if isSpecial(c) {
 			tkns = append(tkns, &Token{Type: string(c)}) // special characters {}()@,;:= will be their own type
@@ -72,16 +74,16 @@ func Analyze(source string) (tkns []*Token) {
 			if nxt == '=' {
 				tkns = append(tkns, &Token{Type: "operation", Value: "=="})
 			} else {
-				tkns = append(tkns, &Token{Type: string(c)})
 				if err = srcReader.UnreadByte(); err != nil {
 					panic(err)
 				}
+				tkns = append(tkns, &Token{Type: string(c)})
 			}
-		} else if numberRe.Match([]byte{c}) {
+		} else if numberRe.Match([]byte{c}) { // number literal
 			tkns = append(tkns, scan(c, srcReader, numberRe, "number"))
-		} else if symbolRe.Match(([]byte{c})) {
+		} else if symbolRe.Match(([]byte{c})) { // symbol
 			tkn := scan(c, srcReader, symbolRe, "symbol")
-			if boolRe.MatchString(tkn.Value) {
+			if boolRe.MatchString(tkn.Value) { // boolean
 				tkns = append(tkns, &Token{Type: "bool", Value: tkn.Value})
 			} else {
 				tkns = append(tkns, tkn)

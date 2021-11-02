@@ -4,6 +4,7 @@ import (
 	"errors"
 	"strconv"
 
+	"github.com/jinzhu/copier"
 	"github.com/mcjcloud/taurine/ast"
 	"github.com/mcjcloud/taurine/lexer"
 )
@@ -79,11 +80,12 @@ func parseExpression(tkn *lexer.Token, it *lexer.TokenIterator, exp ast.Expressi
 		if err != nil {
 			return nil, err
 		}
-		return &ast.OperationExpression{
+		operation := &ast.OperationExpression{
 			Operator:        ast.Operator(op.Value),
 			LeftExpression:  exp,
 			RightExpression: right,
-		}, nil
+		}
+		return orderOperations(operation)
 	} else if peek != nil && peek.Type == "=" {
 		idExp, ok := exp.(*ast.Identifier)
 		if !ok {
@@ -99,23 +101,6 @@ func parseExpression(tkn *lexer.Token, it *lexer.TokenIterator, exp ast.Expressi
 			Identifier: idExp,
 			Value:      val,
 		}, nil
-	} else if peek != nil && peek.Type == "@" {
-		// the expression here should be a string, array or an identifier of either of those types
-		_, sok := exp.(*ast.StringLiteral)
-		_, iok := exp.(*ast.Identifier)
-		_, aok := exp.(*ast.ArrayExpression)
-		if sok || iok || aok {
-			it.Next() // skip the '@'
-			index, err := parseExpression(it.Next(), it, nil)
-			if err != nil {
-				return nil, err
-			}
-			return &ast.IndexExpression{
-				Value: exp,
-				Index: index,
-			}, nil
-		}
-		return nil, errors.New("'@' operator does not apply to non-indexable type")
 	}
 
 	if tkn.Type == "number" {
@@ -144,6 +129,36 @@ func parseExpression(tkn *lexer.Token, it *lexer.TokenIterator, exp ast.Expressi
 	} else {
 		return nil, errors.New("unexpected start of expression")
 	}
+}
+
+func orderOperations(opExp *ast.OperationExpression) (*ast.OperationExpression, error) {
+	// check if the right child is an operator
+	if rightChild, rok := opExp.RightExpression.(*ast.OperationExpression); rok {
+		// if so, check the precendence and reorder the tree
+		if ast.PRECEDENCE[opExp.Operator] > ast.PRECEDENCE[rightChild.Operator] {
+			// copy to avoid modifying the parameter
+			opCopy := &ast.OperationExpression{}
+			err := copier.Copy(&opCopy, &opExp)
+			if err != nil {
+				return nil, err
+			}
+
+			// set the right child as the new parent and parent as left grandchild
+			opCopy.RightExpression = rightChild.LeftExpression
+			rightChild.LeftExpression = opCopy
+
+			// recurse to order the right expression
+			// TODO: does this need to be done in a loop?
+			rightChild.LeftExpression, err = orderOperations(rightChild.LeftExpression.(*ast.OperationExpression))
+			if err != nil {
+				return nil, err
+			}
+
+			// return the new operation
+			return rightChild, nil
+		}
+	}
+	return opExp, nil
 }
 
 func parseFunctionCall(tkn *lexer.Token, it *lexer.TokenIterator) (*ast.FunctionCall, error) {
