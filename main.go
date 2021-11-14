@@ -1,7 +1,6 @@
 package main
 
 import (
-	"encoding/json"
 	"fmt"
 	"io/ioutil"
 	"os"
@@ -31,8 +30,11 @@ func main() {
 	tkns := lexer.Analyze(src)
 	stmts, err := parser.Parse(tkns)
 	if printAst {
-		j, _ := json.Marshal(stmts)
-		fmt.Printf("%s\n", string(j))
+    j, err := parser.JsonAst(stmts)
+    if err != nil {
+      fmt.Printf("could not create AST JSON\n")
+    }
+		fmt.Printf("%s\n", j)
 	}
 	if err != nil {
 		fmt.Printf("Parsing Error: %v\n", err)

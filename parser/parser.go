@@ -1,6 +1,8 @@
 package parser
 
 import (
+	"encoding/json"
+
 	"github.com/mcjcloud/taurine/ast"
 	"github.com/mcjcloud/taurine/lexer"
 )
@@ -31,3 +33,9 @@ func Parse(tokens []*lexer.Token) (*ast.BlockStatement, error) {
 	}
 	return block, nil
 }
+
+func JsonAst(stmt *ast.BlockStatement) (string, error)  {
+  j, err := json.Marshal(stmt)
+  return string(j), err
+}
+

@@ -46,14 +46,14 @@ func (num) strToNum(str s) {
   var (num) i = len(s);
   var (num) res = 0;
   while i > 0 {
-    var (str) char = s@[i - 1];
+    var (str) char = s@(i - 1);
     var (num) numVal = mapChar(char);
     if numVal == 10 {
       return 0;
     }
     var (num) l = len(s);
     var (num) p = pow(10, l - i);
-    res = res + [numVal * p];
+    res = res + (numVal * p);
     i = i - 1;
   }
   return res;

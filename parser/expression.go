@@ -36,19 +36,18 @@ func parseExpression(tkn *lexer.Token, it *lexer.TokenIterator, exp ast.Expressi
 			}
 			return parseExpression(tkn, it, &ast.Identifier{Name: tkn.Value})
 		} else if tkn.Type == "[" {
-			grpOrArrExp, err := parseExpression(it.Next(), it, nil)
+			arrExp, err := parseExpression(it.Next(), it, nil)
 			if err != nil {
 				return nil, err
 			}
 			// expect a ]
 			nxt := it.Next()
 			if nxt == nil || (nxt.Type != "]" && nxt.Type != ",") {
-				return nil, errors.New("expected ']' to end group expression or ',' to separate array items")
+				return nil, errors.New("expected ']' or ',' in array expression")
 			}
-			// if nxt is a ",", this is an array
+			exprs := make([]ast.Expression, 1)
+			exprs[0] = arrExp
 			if nxt.Type == "," {
-				exprs := make([]ast.Expression, 1)
-				exprs[0] = grpOrArrExp
 				// while nxt is a ",", evaluate the next element and add it to the expression array
 				for nxt.Type == "," {
 					nxtEl, err := parseExpression(it.Next(), it, nil)
@@ -64,9 +63,16 @@ func parseExpression(tkn *lexer.Token, it *lexer.TokenIterator, exp ast.Expressi
 				}
 				return parseExpression(nxt, it, &ast.ArrayExpression{Expressions: exprs})
 			} else {
-				return parseExpression(nxt, it, &ast.GroupExpression{Expression: grpOrArrExp})
+				return parseExpression(nxt, it, &ast.ArrayExpression{Expressions: exprs})
 			}
-		} else {
+		} else if tkn.Type == "(" {
+     // (expression)
+     grpExp, err := parseExpression(it.Next(), it, nil)
+     if err != nil {
+       return nil, err
+     }
+     return parseExpression(it.Next(), it, &ast.GroupExpression{Expression: grpExp})
+    } else {
 			return nil, errors.New("unexpected start of expression")
 		}
 	}

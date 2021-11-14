@@ -129,18 +129,29 @@ func evaluateOperation(op *ast.OperationExpression, scope *Scope) (ast.Expressio
 		}
 		return nil, errors.New("'>=' operator only applies to type num")
 	} else if op.Operator == "@" {
-		if left, ok := left.(*ast.ArrayExpression); ok {
+		if leftArr, ok := left.(*ast.ArrayExpression); ok {
 			if rightNum, ok := right.(*ast.NumberLiteral); ok {
 				if i := int(rightNum.Value); float64(i) == rightNum.Value {
-					if i < 0 || i > len(left.Expressions) {
+					if i < 0 || i > len(leftArr.Expressions) {
 						return nil, fmt.Errorf("index %d out of range", i)
 					}
-					return evaluateExpression(left.Expressions[i], scope)
+					return evaluateExpression(leftArr.Expressions[i], scope)
 				} else {
 					return nil, errors.New("'@' index must evalute to an integer")
 				}
 			}
-		}
+    } else if leftStr, ok := left.(*ast.StringLiteral); ok {
+      if rightNum, ok := right.(*ast.NumberLiteral); ok {
+        if i := int(rightNum.Value); float64(i) == rightNum.Value {
+          if i < 0 || i > len(leftStr.Value) {
+            return nil, fmt.Errorf("index %d out of range", i)
+          }
+          return &ast.StringLiteral{Value: string([]rune(leftStr.Value)[i])}, nil
+        } else {
+          return nil, errors.New("'@' index must evaluate to an integer")
+        }
+      }
+    }
 		return nil, errors.New("'@' operator must be in form arr@integer")
 	}
 	return nil, errors.New("unrecognized operator")
