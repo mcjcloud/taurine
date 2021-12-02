@@ -47,18 +47,12 @@ etch factorial(5); // "120.000000"
 
 ## Expression grouping
 
-Expressions are grouped together with square brackets `[]`.
+Expressions are grouped together with parethesis `()`.
 
 ```
 var (num) x = 3 * 2 + 4;   // 10
-var (num) y = 3 * [2 + 4]; // 18
+var (num) y = 3 * (2 + 4); // 18
 ```
-
-# COMING SOON
-
-The below features have not been implemented yet.
-
-Note that order of operations is not correct at the moment.
 
 ## Indexing
 
@@ -71,3 +65,28 @@ etch myName@1;        // "r"
 var (arr) myArr = [10, 20, 30];
 etch myArr@2; // "30"
 ```
+
+# COMING SOON
+
+The below features have not been implemented yet.
+
+## Objects
+
+Javascript-style objects
+
+```
+var (obj) myObj = { hello: "world" };
+```
+
+## Dot notation
+
+With the addition of objects will be the addition of dot notation
+
+```
+var (obj) myObj = { hello: "world" };
+etch myObj.hello;
+```
+
+## Error line numbers
+Compiler does not print line number with the error because it doesn't know which line it was.
+

@@ -61,6 +61,18 @@ func Analyze(source string) (tkns []*Token) {
 
 		if c == '"' {
 			tkns = append(tkns, scanString(srcReader))
+    } else if c == '-' {
+      nxt, err := srcReader.ReadByte()
+      if err != nil {
+        panic(err)
+      }
+      if numberRe.Match([]byte{nxt}) {
+        err = srcReader.UnreadByte()
+        if err != nil {
+          panic(err)
+        }
+        tkns = append(tkns, scanNumber(c, srcReader))
+      }
 		} else if isSpecial(c) {
 			tkns = append(tkns, &Token{Type: string(c)}) // special characters {}()@,;:= will be their own type
 		} else if isOperation(c) {
@@ -79,8 +91,8 @@ func Analyze(source string) (tkns []*Token) {
 				}
 				tkns = append(tkns, &Token{Type: string(c)})
 			}
-		} else if numberRe.Match([]byte{c}) { // number literal
-			tkns = append(tkns, scan(c, srcReader, numberRe, "number"))
+    } else if numberRe.Match([]byte{c}) { // number literal
+      tkns = append(tkns, scanNumber(c, srcReader))
 		} else if symbolRe.Match(([]byte{c})) { // symbol
 			tkn := scan(c, srcReader, symbolRe, "symbol")
 			if boolRe.MatchString(tkn.Value) { // boolean
@@ -153,6 +165,39 @@ func scanOperation(c byte, reader *strings.Reader) *Token {
 	}
 }
 
+func scanNumber(c byte, reader *strings.Reader) *Token {
+	var val string
+	var err error
+	b := c
+  if c == '-' {
+    val += "-"
+    b, err = reader.ReadByte()
+    if err != nil {
+      panic(err)
+    }
+  }
+	for numberRe.Match([]byte{b}) {
+		val += string(b)
+		b, err = reader.ReadByte()
+		if err != nil {
+			if err == io.EOF {
+				break
+			}
+			panic(err)
+		}
+	}
+	if err == nil {
+		err = reader.UnreadByte()
+	}
+	if err != nil && err != io.EOF {
+		panic(err)
+	}
+	return &Token{
+		Type:  "number",
+		Value: val,
+	}
+}
+
 func scan(c byte, reader *strings.Reader, re *regexp.Regexp, t string) *Token {
 	var val string
 	var err error
@@ -178,3 +223,4 @@ func scan(c byte, reader *strings.Reader, re *regexp.Regexp, t string) *Token {
 		Value: val,
 	}
 }
+

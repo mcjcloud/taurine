@@ -1,5 +1,7 @@
 package lexer
 
+import "fmt"
+
 // Token represents a token produced by the lexer
 type Token struct {
 	Type  string
@@ -60,3 +62,10 @@ func (it *TokenIterator) AtIndex(i int) *Token {
 	}
 	return it.Tokens[i]
 }
+
+func PrintTokens(tkns []*Token) {
+  for i, tkn := range tkns {
+    fmt.Printf("%04d %s %s\n", i, tkn.Type, tkn.Value)
+  }
+}
+

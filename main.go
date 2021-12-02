@@ -1,6 +1,7 @@
 package main
 
 import (
+  "flag"
 	"fmt"
 	"io/ioutil"
 	"os"
@@ -10,38 +11,44 @@ import (
 	"github.com/mcjcloud/taurine/parser"
 )
 
+
 func main() {
-	if len(os.Args) < 2 {
+  var ast = flag.Bool("ast", false, "print abstract syntax tree")
+  var printTokens = flag.Bool("print-tokens", false, "print the tokenized source code")
+  flag.Parse()
+
+	if len(flag.Args()) < 1 {
 		fmt.Println("Please provide a filename")
 		os.Exit(1)
 	}
-	bytes, err := ioutil.ReadFile(os.Args[1])
+	bytes, err := ioutil.ReadFile(flag.Arg(0))
 	if err != nil {
-		fmt.Printf("Could not read file %s\n", os.Args[1])
+		fmt.Printf("Could not read file %s\n", flag.Arg(1))
 		os.Exit(1)
 	}
 	src := string(bytes)
 
-	// check for '--ast' flag
-	var printAst bool
-	if len(os.Args) >= 3 && os.Args[2] == "--ast" {
-		printAst = true
-	}
 	tkns := lexer.Analyze(src)
+  if *printTokens {
+    lexer.PrintTokens(tkns)
+    os.Exit(0)
+  }
 	stmts, err := parser.Parse(tkns)
-	if printAst {
+  if err != nil {
+    fmt.Printf("Parsing Error: %v\n", err)
+    os.Exit(1)
+  }
+  // check for '--ast' flag
+  if *ast {
     j, err := parser.JsonAst(stmts)
     if err != nil {
       fmt.Printf("could not create AST JSON\n")
     }
-		fmt.Printf("%s\n", j)
-	}
-	if err != nil {
-		fmt.Printf("Parsing Error: %v\n", err)
-		os.Exit(1)
-	}
-	err = evaluator.Evaluate(stmts)
-	if err != nil {
-		fmt.Printf("eval error: %s", err)
-	}
+		fmt.Printf("%s", j)
+  } else {
+    err = evaluator.Evaluate(stmts)
+    if err != nil {
+      fmt.Printf("eval error: %s", err)
+    }
+  }
 }

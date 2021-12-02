@@ -1,6 +1,6 @@
 var (arr) x = [1, 2, 3];
 var (num) y = x@2 + x@1;
 
-etch x@1 + 3 * y / [3 + 2]; // 5
+etch x@1 + 3 * y / (3 + 2); // 5
 
 etch x@0 + 3 * 2; // 7

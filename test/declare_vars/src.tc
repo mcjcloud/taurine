@@ -1,0 +1,5 @@
+var (num) x = -1;
+var (str) mystr = "hello world";
+var (arr) myarr = [1, 2, 3];
+etch x;
+

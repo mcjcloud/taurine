@@ -1,0 +1,1 @@
+{"statements":[{"symbol":"x","symbolType":"num","value":{"Value":1}},{"symbol":"mystr","symbolType":"str","value":{"Value":"hello world"}},{"symbol":"myarr","symbolType":"arr","value":{"expressions":[{"Value":1},{"Value":2},{"Value":3}]}},{"expressions":[{"Name":"x"}]}]}

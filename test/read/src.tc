@@ -1,0 +1,5 @@
+var (str) x;
+
+read x, "Enter a string: ";
+etch x;
+

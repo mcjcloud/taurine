@@ -1,2 +1,0 @@
-{"statements":[{"symbol":"x","symbolType":"arr","value":{"expressions":[{"Value":3}]}},{"expressions":[{"operator":"@","leftExpression":{"Name":"x"},"rightExpression":{"expression":{"operator":"-","leftExpression":{"Value":1},"rightExpression":{"Value":1}}}}]}]}
-3.000000
