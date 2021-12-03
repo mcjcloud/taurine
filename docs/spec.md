@@ -76,7 +76,15 @@ Javascript-style objects
 
 ```
 var (obj) myObj = { hello: "world" };
+var (obj) myObj = {
+  hello: "world",
+  x: 3,
+}
 ```
+
+## Functions as expressions
+
+Pass functions as arguments and assign them to variables.
 
 ## Dot notation
 

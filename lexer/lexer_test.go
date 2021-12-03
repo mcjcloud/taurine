@@ -1,10 +1,10 @@
 package lexer
 
 import (
-	"testing"
+  "testing"
 
-	"github.com/mcjcloud/taurine/lexer"
-	"github.com/mcjcloud/taurine/parser"
+  "github.com/mcjcloud/taurine/lexer"
+  "github.com/mcjcloud/taurine/parser"
 )
 
 func TestAnalyze(t *testing.T) {
