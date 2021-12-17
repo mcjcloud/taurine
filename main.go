@@ -42,7 +42,7 @@ func main() {
   if *ast {
     j, err := parser.JsonAst(stmts)
     if err != nil {
-      fmt.Printf("could not create AST JSON\n")
+      fmt.Printf("could not create AST JSON: %s\n", err.Error())
     }
     fmt.Printf("%s", j)
   } else {

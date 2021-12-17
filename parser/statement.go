@@ -94,7 +94,7 @@ func parseVarDecleration(tkn *lexer.Token, it *lexer.TokenIterator) (*ast.Variab
     spec = it.Next()
   }
   // TODO: allow multiple assignments with ','
-  if spec.Type != ";" {
+  if spec == nil || spec.Type != ";" {
     return nil, errors.New("missing semicolon")
   }
   return decl, nil
@@ -119,6 +119,10 @@ func parseAssignmentExpression(tkn *lexer.Token, dataType ast.Symbol, it *lexer.
     }
   } else if dataType == ast.ARR {
     if _, ok := exp.(*ast.ArrayExpression); ok {
+      return exp, nil
+    }
+  } else if dataType == ast.OBJ {
+    if _, ok := exp.(*ast.ObjectLiteral); ok {
       return exp, nil
     }
   }

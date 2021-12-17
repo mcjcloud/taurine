@@ -153,6 +153,19 @@ func evaluateOperation(op *ast.OperationExpression, scope *Scope) (ast.Expressio
       }
     }
     return nil, errors.New("'@' operator must be in form arr@integer")
+  } else if op.Operator == "." {
+    left, err = evaluateExpression(left, scope)
+    if err != nil {
+      return nil, fmt.Errorf("error accessing obj member: %s", err.Error())
+    }
+    if leftObj, ok := left.(*ast.ObjectLiteral); ok {
+      if rightIdentifier, ok := op.RightExpression.(*ast.Identifier); ok {
+        if leftObj.Value[rightIdentifier.Name] != nil {
+          return evaluateExpression(leftObj.Value[rightIdentifier.Name], scope)
+        }
+      }
+    }
+    return nil, errors.New("'.' operator must be in form obj.identifier")
   }
   return nil, errors.New("unrecognized operator")
 }

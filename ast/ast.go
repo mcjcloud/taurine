@@ -153,6 +153,8 @@ const (
   BOOL = "bool"
   // ARR represents an array type
   ARR = "arr"
+  // OBJ represents the object type
+  OBJ = "obj"
   // FUNC represents the function keyword
   FUNC = "func"
 )
@@ -171,6 +173,8 @@ const (
   DIVIDE = "/"
   // AT represents @
   AT = "@"
+  // DOT represents .
+  DOT = "."
 )
 
 var PRECEDENCE = map[Operator]int{
@@ -179,6 +183,7 @@ var PRECEDENCE = map[Operator]int{
   MULTIPLY: 2,
   DIVIDE:   2,
   AT:       3,
+  DOT: 4,
 }
 
 // IsStatementPrefix returns true if the symbol is a statement prefix
@@ -188,7 +193,7 @@ func (str Symbol) IsStatementPrefix() bool {
 
 // IsDataType returns true if the symbol represents a data type
 func (str Symbol) IsDataType() bool {
-  return str == NUM || str == STR || str == BOOL || str == ARR
+  return str == NUM || str == STR || str == BOOL || str == ARR || str == OBJ
 }
 
 // NumberLiteral represents the num data type
@@ -219,6 +224,16 @@ type BooleanLiteral struct {
 func (b *BooleanLiteral) evaluate() {}
 func (b *BooleanLiteral) String() string {
   return fmt.Sprintf("%v", b.Value)
+}
+
+// ObjectLiteral represents the obj data type
+type ObjectLiteral struct {
+  Value map[string]Expression
+}
+
+func (o *ObjectLiteral) evaluate() {}
+func (o *ObjectLiteral) String() string {
+  return fmt.Sprintf("%v", o.Value)
 }
 
 // FunctionCall represents an expression which needs to call a function

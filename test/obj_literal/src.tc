@@ -1,0 +1,9 @@
+var (obj) x = {
+  hello: "world",
+  n: 4,
+  mybool: true,
+};
+etch x.hello;
+etch x.n;
+etch x.mybool;
+

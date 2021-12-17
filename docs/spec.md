@@ -66,10 +66,6 @@ var (arr) myArr = [10, 20, 30];
 etch myArr@2; // "30"
 ```
 
-# COMING SOON
-
-The below features have not been implemented yet.
-
 ## Objects
 
 Javascript-style objects
@@ -82,10 +78,6 @@ var (obj) myObj = {
 }
 ```
 
-## Functions as expressions
-
-Pass functions as arguments and assign them to variables.
-
 ## Dot notation
 
 With the addition of objects will be the addition of dot notation
@@ -93,8 +85,24 @@ With the addition of objects will be the addition of dot notation
 ```
 var (obj) myObj = { hello: "world" };
 etch myObj.hello;
+
+# COMING SOON
+
+The below features have not been implemented yet.
+
 ```
+## Functions as expressions
+
+Pass functions as arguments and assign them to variables.
 
 ## Error line numbers
 Compiler does not print line number with the error because it doesn't know which line it was.
+
+## String interpolation
+Interpolate variables in strings
+
+```
+var (str) myStr = "world";
+var (str) helloWorld = "hello \(myStr)"
+```
 

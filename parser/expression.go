@@ -66,12 +66,49 @@ func parseExpression(tkn *lexer.Token, it *lexer.TokenIterator, exp ast.Expressi
         return parseExpression(nxt, it, &ast.ArrayExpression{Expressions: exprs})
       }
     } else if tkn.Type == "(" {
-     // (expression)
-     grpExp, err := parseExpression(it.Next(), it, nil)
-     if err != nil {
-       return nil, err
-     }
-     return parseExpression(it.Next(), it, &ast.GroupExpression{Expression: grpExp})
+      // (expression)
+      grpExp, err := parseExpression(it.Next(), it, nil)
+      if err != nil {
+        return nil, err
+      }
+      return parseExpression(it.Next(), it, &ast.GroupExpression{Expression: grpExp})
+    } else if tkn.Type == "{" {
+      value := make(map[string]ast.Expression)
+      keysRemain := true
+      var nxt *lexer.Token
+      for keysRemain {
+        // object literal
+        idExp, err := parseExpression(it.Next(), it, nil)
+        if err != nil {
+          return nil, err
+        }
+        if id := idExp.(*ast.Identifier); id != nil {
+          // expect a ':' next
+          if it.Next().Type != ":" {
+            return nil, errors.New("expected ':' after identifer")
+          }
+          valExp, err := parseExpression(it.Next(), it, nil)
+          if err != nil {
+            return nil, err
+          }
+          nxt = it.Next()
+          if nxt.Type == "," {
+            if it.Peek().Type == "}" {
+              nxt = it.Next()
+              keysRemain = false
+            }
+          } else if nxt.Type == "}" {
+            keysRemain = false
+          } else {
+            return nil, errors.New("expected ',' or '}' following map key-value pair")
+          }
+          // add the key value pair to the result
+          value[id.Name] = valExp
+        } else {
+          return nil, errors.New("key must be an identifier")
+        }
+      }
+      return parseExpression(nxt, it, &ast.ObjectLiteral{Value: value})
     } else {
       return nil, errors.New("unexpected start of expression")
     }
@@ -132,6 +169,8 @@ func parseExpression(tkn *lexer.Token, it *lexer.TokenIterator, exp ast.Expressi
   } else if fnExp, ok := exp.(*ast.FunctionCall); ok {
     // this ends a function call expression
     return fnExp, nil
+  } else if objExp, ok := exp.(*ast.ObjectLiteral); ok {
+    return objExp, nil
   } else {
     return nil, errors.New("unexpected start of expression")
   }

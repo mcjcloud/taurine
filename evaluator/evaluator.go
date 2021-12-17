@@ -242,37 +242,3 @@ func evaluateFunctionCall(call *ast.FunctionCall, scope *Scope) (ast.Expression,
   return fn.Scope.ReturnValue, nil
 }
 
-// func evaluateIndexExpression(exp *ast.IndexExpression, scope *Scope) (ast.Expression, error) {
-//  // evaluate the left-hand side
-//  left, err := evaluateExpression(exp.Value, scope)
-//  if err != nil {
-//    return nil, err
-//  }
-//  indExp, err := evaluateExpression(exp.Index, scope)
-//  if err != nil {
-//    return nil, err
-//  }
-//  index, ok := indExp.(*ast.NumberLiteral)
-//  if !ok || math.Floor(index.Value) != index.Value || index.Value < 0 {
-//    return nil, errors.New("index must evaluate to a whole number >= 0")
-//  }
-//  // left should be either an array or a string literal
-//  i := int(index.Value)
-//  if strExp, ok := left.(*ast.StringLiteral); ok {
-//    // check array-out-of-bounds
-//    if i < 0 || i > len(strExp.Value)-1 {
-//      return nil, fmt.Errorf("Index '%d' is out of bounds for string of length %d", i, len(strExp.Value))
-//    }
-//    return &ast.StringLiteral{
-//      Value: string(strExp.Value[i]),
-//    }, nil
-//  }
-//  if arrExp, ok := left.(*ast.ArrayExpression); ok {
-//    // check array out of bounds
-//    if i < 0 || i > len(arrExp.Expressions)-1 {
-//      return nil, fmt.Errorf("Index '%d' is out of bounds for array of length %d", i, len(arrExp.Expressions))
-//    }
-//    return arrExp.Expressions[i], nil // the array values should already be evaluated
-//  }
-//  return nil, errors.New("cannot use '@' on non-string or non-array type")
-// }
