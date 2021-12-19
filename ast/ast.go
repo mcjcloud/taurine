@@ -1,6 +1,8 @@
 package ast
 
-import "fmt"
+import (
+	"fmt"
+)
 
 // Node represents a node in the AST
 type Node interface {
@@ -16,7 +18,7 @@ type Statement interface {
 // Expression represents an evaluatable expression
 type Expression interface {
   Node
-  evaluate()
+  Evaluate()
 }
 
 // BlockStatement is a Statement which consists of multiple statements
@@ -53,19 +55,6 @@ type VariableDecleration struct {
 func (v *VariableDecleration) do() {}
 func (v *VariableDecleration) String() string {
   return fmt.Sprintf("var (%s) %s = %s", v.SymbolType, v.Symbol, v.Value)
-}
-
-// FunctionDecleration represents a function decleration
-type FunctionDecleration struct {
-  Symbol     string                 `json:"symbol"`
-  ReturnType string                 `json:"returnType"`
-  Parameters []*VariableDecleration `json:"parameters"`
-  Body       Statement              `json:"body"`
-}
-
-func (f *FunctionDecleration) do() {}
-func (f *FunctionDecleration) String() string {
-  return fmt.Sprintf("func (%s) %s(%s) %s", f.ReturnType, f.Symbol, f.Parameters, f.Body)
 }
 
 // ReturnStatement represents a statement to return a value
@@ -183,17 +172,17 @@ var PRECEDENCE = map[Operator]int{
   MULTIPLY: 2,
   DIVIDE:   2,
   AT:       3,
-  DOT: 4,
+  DOT:      4,
 }
 
 // IsStatementPrefix returns true if the symbol is a statement prefix
 func (str Symbol) IsStatementPrefix() bool {
-  return str == IF || str == FOR || str == WHILE || str == VAR || str == ETCH || str == READ || str == RETURN || str == FUNC
+  return str == IF || str == FOR || str == WHILE || str == VAR || str == ETCH || str == READ || str == RETURN
 }
 
 // IsDataType returns true if the symbol represents a data type
 func (str Symbol) IsDataType() bool {
-  return str == NUM || str == STR || str == BOOL || str == ARR || str == OBJ
+  return str == NUM || str == STR || str == BOOL || str == ARR || str == OBJ || str == FUNC
 }
 
 // NumberLiteral represents the num data type
@@ -201,7 +190,7 @@ type NumberLiteral struct {
   Value float64
 }
 
-func (n *NumberLiteral) evaluate() {}
+func (n *NumberLiteral) Evaluate() {}
 func (n *NumberLiteral) String() string {
   return fmt.Sprintf("%f", n.Value)
 }
@@ -211,7 +200,7 @@ type StringLiteral struct {
   Value string
 }
 
-func (s *StringLiteral) evaluate() {}
+func (s *StringLiteral) Evaluate() {}
 func (s *StringLiteral) String() string {
   return s.Value
 }
@@ -221,7 +210,7 @@ type BooleanLiteral struct {
   Value bool
 }
 
-func (b *BooleanLiteral) evaluate() {}
+func (b *BooleanLiteral) Evaluate() {}
 func (b *BooleanLiteral) String() string {
   return fmt.Sprintf("%v", b.Value)
 }
@@ -231,18 +220,32 @@ type ObjectLiteral struct {
   Value map[string]Expression
 }
 
-func (o *ObjectLiteral) evaluate() {}
+func (o *ObjectLiteral) Evaluate() {}
 func (o *ObjectLiteral) String() string {
   return fmt.Sprintf("%v", o.Value)
 }
 
+// FunctionLiteral represents a function
+type FunctionLiteral struct {
+  Symbol     string                 `json:"symbol"`
+  ReturnType string                 `json:"returnType"`
+  Parameters []*VariableDecleration `json:"parameters"`
+  Body       Statement              `json:"body"`
+}
+
+func (f *FunctionLiteral) Evaluate() {}
+func (f *FunctionLiteral) String() string {
+  return fmt.Sprintf("func (%s) %s(%s) %s", f.ReturnType, f.Symbol, f.Parameters, f.Body)
+}
+
 // FunctionCall represents an expression which needs to call a function
+// The "Expression" will be whatever in AST, but Evaluate to a evaluator.ScopedFunction during runtime
 type FunctionCall struct {
-  Function  string       `json:"function"`
+  Function  Expression   `json:"function"`
   Arguments []Expression `json:"arguments"`
 }
 
-func (f *FunctionCall) evaluate() {}
+func (f *FunctionCall) Evaluate() {}
 func (f *FunctionCall) String() string {
   return fmt.Sprintf("%s(%s)", f.Function, f.Arguments)
 }
@@ -252,7 +255,7 @@ type Identifier struct {
   Name string
 }
 
-func (i *Identifier) evaluate() {}
+func (i *Identifier) Evaluate() {}
 func (i *Identifier) String() string {
   return i.Name
 }
@@ -264,7 +267,7 @@ type OperationExpression struct {
   RightExpression Expression `json:"rightExpression"`
 }
 
-func (o *OperationExpression) evaluate() {}
+func (o *OperationExpression) Evaluate() {}
 func (o *OperationExpression) String() string {
   var l string
   if o.LeftExpression != nil {
@@ -283,7 +286,7 @@ type AssignmentExpression struct {
   Value      Expression  `json:"value"`
 }
 
-func (a *AssignmentExpression) evaluate() {}
+func (a *AssignmentExpression) Evaluate() {}
 func (a *AssignmentExpression) String() string {
   return fmt.Sprintf("%s = %s", a.Identifier, a.Value)
 }
@@ -293,7 +296,7 @@ type GroupExpression struct {
   Expression Expression `json:"expression"`
 }
 
-func (g *GroupExpression) evaluate() {}
+func (g *GroupExpression) Evaluate() {}
 func (g *GroupExpression) String() string {
   return fmt.Sprintf("[%s]", g.Expression)
 }
@@ -303,7 +306,7 @@ type ArrayExpression struct {
   Expressions []Expression `json:"expressions"`
 }
 
-func (a *ArrayExpression) evaluate() {}
+func (a *ArrayExpression) Evaluate() {}
 func (a *ArrayExpression) String() string {
   str := "["
   for i, e := range a.Expressions {

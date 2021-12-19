@@ -3,16 +3,21 @@ package evaluator
 import "github.com/mcjcloud/taurine/ast"
 
 // Function represents a function in a particular scope
-type Function struct {
-  Scope       *Scope
-  Decleration *ast.FunctionDecleration
+type ScopedFunction struct {
+  Scope    *Scope
+  Function *ast.FunctionLiteral
+}
+// implement Expression interface to allow scope to be stored with the function
+func (s *ScopedFunction) Evaluate() {}
+func (s *ScopedFunction) String() string {
+  return s.Function.String()
 }
 
 // Scope represents data within a scope during execution
 type Scope struct {
   Parent      *Scope                    // the parent scope
   Variables   map[string]ast.Expression // a map of variable names to values
-  Functions   map[string]*Function      // a map of function name to declerations
+  //Functions   map[string]*Function      // a map of function name to declerations
   ReturnValue ast.Expression            // if the scope is for a function, this will hold the return value
 }
 
@@ -21,7 +26,7 @@ func NewScope() *Scope {
   return &Scope{
     Parent:    nil,
     Variables: map[string]ast.Expression{},
-    Functions: map[string]*Function{},
+    //Functions: map[string]*Function{},
   }
 }
 
@@ -30,6 +35,14 @@ func NewScopeWithParent(par *Scope) *Scope {
   return &Scope{
     Parent:    par,
     Variables: map[string]ast.Expression{},
+  }
+}
+
+// NewScopeOfObject creates a new scope with an objects properties as variables
+func NewScopeOfObject(obj *ast.ObjectLiteral, par *Scope) *Scope {
+  return &Scope{
+    Parent: par,
+    Variables: obj.Value,
   }
 }
 
@@ -53,6 +66,7 @@ func (s *Scope) Set(symbol string, val ast.Expression) {
   s.Variables[symbol] = val
 }
 
+/*
 // GetFunction gets a function definition
 func (s *Scope) GetFunction(symbol string) *Function {
   if val, ok := s.Functions[symbol]; ok {
@@ -65,7 +79,7 @@ func (s *Scope) GetFunction(symbol string) *Function {
 }
 
 // SetFunction sets a function definition
-func (s *Scope) SetFunction(symbol string, val *ast.FunctionDecleration) {
+func (s *Scope) SetFunction(symbol string, val *ast.FunctionLiteral) {
   if s.Functions[symbol] == nil && s.Parent != nil && s.Parent.GetFunction(symbol) != nil {
     s.Parent.SetFunction(symbol, val)
     return
@@ -75,3 +89,4 @@ func (s *Scope) SetFunction(symbol string, val *ast.FunctionDecleration) {
     Scope:       s,
   }
 }
+*/

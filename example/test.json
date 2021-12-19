@@ -1,0 +1,25 @@
+{
+    "statements": [{
+        "expressions": [{
+            "operator": ".",
+            "leftExpression": {
+                "Name": "x"
+            },
+            "rightExpression": {
+                "operator": ".",
+                "leftExpression": {
+                    "function": {
+                        "Name": "z"
+                    },
+                    "arguments": null
+                },
+                "rightExpression": {
+                    "function": {
+                        "Name": "f"
+                    },
+                    "arguments": null
+                }
+            }
+        }]
+    }]
+}

@@ -26,13 +26,14 @@ func parseExpression(tkn *lexer.Token, it *lexer.TokenIterator, exp ast.Expressi
       }
       return nil, errors.New("invalid boolean value")
     } else if tkn.Type == "symbol" {
-      // check if the identifier is a function call
-      if p := it.Peek(); p != nil && p.Type == "(" {
-        fnCall, err := parseFunctionCall(tkn, it)
+     // check if the symbol is "func", if so this is a func expression
+      if tkn.Value == "func" {
+        fn, err := parseFunction(tkn, it)
         if err != nil {
           return nil, err
         }
-        return parseExpression(it.Current(), it, fnCall)
+        // pass fn back in to see if it is being operated on (e.g. a function call)
+        return parseExpression(it.Current(), it, fn)
       }
       return parseExpression(tkn, it, &ast.Identifier{Name: tkn.Value})
     } else if tkn.Type == "[" {
@@ -123,6 +124,11 @@ func parseExpression(tkn *lexer.Token, it *lexer.TokenIterator, exp ast.Expressi
     if err != nil {
       return nil, err
     }
+    /*
+    if rFnCall, ok := right.(*ast.FunctionCall); ok && op.Type == ast.DOT {
+      // TODO: use rFnCall 
+    }
+    */
     operation := &ast.OperationExpression{
       Operator:        ast.Operator(op.Value),
       LeftExpression:  exp,
@@ -130,6 +136,7 @@ func parseExpression(tkn *lexer.Token, it *lexer.TokenIterator, exp ast.Expressi
     }
     return orderOperations(operation)
   } else if peek != nil && peek.Type == "=" {
+    // assignment
     idExp, ok := exp.(*ast.Identifier)
     if !ok {
       return nil, errors.New("expected left side of assignment to be an identifier")
@@ -144,8 +151,20 @@ func parseExpression(tkn *lexer.Token, it *lexer.TokenIterator, exp ast.Expressi
       Identifier: idExp,
       Value:      val,
     }, nil
+  } else if peek != nil && peek.Type == "(" {
+    // function call
+    it.Next()
+    fnCall, err := parseFunctionCall(exp, it)
+    if err != nil {
+      return nil, err
+    }
+    return parseExpression(it.Current(), it, fnCall)
+  } else {
+    return exp, nil
   }
 
+  /*
+  // TODO: consider if tkn.Type needs to be checked. If the above cases don't apply, I think we just return exp
   if tkn.Type == "number" {
     val, _ := strconv.ParseFloat(tkn.Value, 64)
     return &ast.NumberLiteral{Value: val}, nil
@@ -171,9 +190,13 @@ func parseExpression(tkn *lexer.Token, it *lexer.TokenIterator, exp ast.Expressi
     return fnExp, nil
   } else if objExp, ok := exp.(*ast.ObjectLiteral); ok {
     return objExp, nil
+  } else if fnExp, ok := exp.(*ast.FunctionLiteral); ok {
+    // this ends a function literal
+    return fnExp, nil
   } else {
     return nil, errors.New("unexpected start of expression")
   }
+  */
 }
 
 func orderOperations(opExp *ast.OperationExpression) (*ast.OperationExpression, error) {
@@ -206,11 +229,88 @@ func orderOperations(opExp *ast.OperationExpression) (*ast.OperationExpression, 
   return opExp, nil
 }
 
-func parseFunctionCall(tkn *lexer.Token, it *lexer.TokenIterator) (*ast.FunctionCall, error) {
+func parseFunction(tkn *lexer.Token, it *lexer.TokenIterator) (*ast.FunctionLiteral, error) {
+  // expect ( return type )
+  if nxt := it.Next(); nxt == nil || nxt.Type != "(" {
+    return nil, errors.New("expected '('")
+  }
+  nxt := it.Next()
+  if nxt == nil || nxt.Type != "symbol" || !ast.Symbol(nxt.Value).IsDataType() {
+    return nil, errors.New("expected data type")
+  }
+  returnType := nxt.Value
+
+  nxt = it.Next()
+  if nxt == nil || nxt.Type != ")" {
+    return nil, errors.New("expected ')'")
+  }
+
+  // expect symbol
+  var symbol string
+  peek := it.Peek()
+  if peek == nil || peek.Type != "symbol" {
+    symbol = ""
+  } else {
+    symbol = it.Next().Value
+  }
+
+  // expect ( parameter, parameter, ... )
+  params := make([]*ast.VariableDecleration, 0)
+  if nxt = it.Next(); nxt == nil || nxt.Type != "(" {
+    return nil, errors.New("expected '('")
+  }
+  for nxt = it.Next(); nxt.Type != ")"; nxt = it.Next() {
+    if nxt == nil {
+      return nil, errors.New("unexpected end of file")
+    }
+    if nxt.Type == "," {
+      nxt = it.Next()
+    }
+    // first expect data type
+    if !ast.Symbol(nxt.Value).IsDataType() {
+      return nil, errors.New("expected data type for parameter")
+    }
+    dataType := nxt.Value
+
+    // next expect symbol
+    nxt = it.Next()
+    if nxt == nil || nxt.Type != "symbol" {
+      return nil, errors.New("expected parameter name")
+    }
+    paramName := nxt.Value
+    params = append(params, &ast.VariableDecleration{
+      Symbol:     paramName,
+      SymbolType: dataType,
+    })
+
+    // setup for next iteration, should be ',' or ')'
+    //peek = it.Peek()
+    //if peek == nil || peek.Type != "," && peek.Type != ")" {
+    //  return nil, errors.New("expected ')' to end parameters")
+    //}
+    //if peek.Type == "," {
+    //  it.Next()
+    //}
+  }
+
+  // parse the statement that follows
+  body, err := parseStatement(it.Next(), it)
+  if err != nil {
+    return nil, err
+  }
+  return &ast.FunctionLiteral{
+    Symbol:     symbol,
+    ReturnType: returnType,
+    Parameters: params,
+    Body:       body,
+  }, nil
+}
+
+func parseFunctionCall(exp ast.Expression, it *lexer.TokenIterator) (*ast.FunctionCall, error) {
   var args []ast.Expression
   nxt := it.Next()
   for nxt.Type != ")" {
-    nxt = it.Next()
+    //nxt = it.Next()
     exp, err := parseExpression(nxt, it, nil)
     if err != nil {
       return nil, err
@@ -222,7 +322,7 @@ func parseFunctionCall(tkn *lexer.Token, it *lexer.TokenIterator) (*ast.Function
     }
   }
   return &ast.FunctionCall{
-    Function:  tkn.Value,
+    Function:  exp,
     Arguments: args,
   }, nil
 }

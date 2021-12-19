@@ -1,13 +1,13 @@
 package evaluator
 
 import (
-  "bufio"
-  "errors"
-  "fmt"
-  "os"
-  "strings"
+	"bufio"
+	"errors"
+	"fmt"
+	"os"
+	"strings"
 
-  "github.com/mcjcloud/taurine/ast"
+	"github.com/mcjcloud/taurine/ast"
 )
 
 // Evaluate evaluates the code and does stuff
@@ -34,10 +34,6 @@ func executeStatement(stmt ast.Statement, scope *Scope) error {
     }
   } else if declStmt, ok := stmt.(*ast.VariableDecleration); ok {
     if err := executeVariableDecleration(declStmt, scope); err != nil {
-      return err
-    }
-  } else if funcStmt, ok := stmt.(*ast.FunctionDecleration); ok {
-    if err := executeFunctionDecleration(funcStmt, scope); err != nil {
       return err
     }
   } else if expStmt, ok := stmt.(*ast.ExpressionStatement); ok {
@@ -163,14 +159,6 @@ func executeVariableDecleration(stmt *ast.VariableDecleration, scope *Scope) err
   return nil
 }
 
-func executeFunctionDecleration(stmt *ast.FunctionDecleration, scope *Scope) error {
-  if scope.Functions[stmt.Symbol] != nil {
-    return fmt.Errorf("function '%s' already exists", stmt.Symbol)
-  }
-  scope.SetFunction(stmt.Symbol, stmt)
-  return nil
-}
-
 func evaluateExpression(exp ast.Expression, scope *Scope) (ast.Expression, error) {
   if op, ok := exp.(*ast.OperationExpression); ok {
     return evaluateOperation(op, scope)
@@ -185,7 +173,7 @@ func evaluateExpression(exp ast.Expression, scope *Scope) (ast.Expression, error
     if err != nil {
       return nil, err
     }
-    // update the scope and return the evaluated value
+   // update the scope and return the evaluated value
     scope.Set(asn.Identifier.Name, val)
     return val, nil
   } else if fnCall, ok := exp.(*ast.FunctionCall); ok {
@@ -194,6 +182,29 @@ func evaluateExpression(exp ast.Expression, scope *Scope) (ast.Expression, error
     return evaluateExpression(grpExp.Expression, scope)
   } else if arrExp, ok := exp.(*ast.ArrayExpression); ok {
     return evaluateArrayExpression(arrExp, scope)
+  } else if fnVal, ok := exp.(*ast.FunctionLiteral); ok {
+    // if evaluating a FunctionLiteral, wrap it in the current scope
+    // this allows that scope to be accessed during execution
+    sf := &ScopedFunction{
+      Scope: scope,
+      Function: fnVal,
+    }
+    // if there is a symbol name, store the function in scope
+    // TODO: eventually I should distinguish between functinos and anon functions..
+    // right now, you could name a variable function and it could be stored twice
+    if fnVal.Symbol != "" {
+      scope.Set(fnVal.Symbol, sf)
+    }
+    return sf, nil
+  } else if objExp, ok := exp.(*ast.ObjectLiteral); ok {
+    // if evaluating an object literal, evaluate each of it's properties
+    for k, v := range objExp.Value {
+      newExp, err := evaluateExpression(v, scope)
+      if err != nil {
+        return nil, err
+      }
+      objExp.Value[k] = newExp
+    }
   }
   return exp, nil
 }
@@ -211,20 +222,25 @@ func evaluateArrayExpression(arr *ast.ArrayExpression, scope *Scope) (ast.Expres
 }
 
 func evaluateFunctionCall(call *ast.FunctionCall, scope *Scope) (ast.Expression, error) {
-  fn := scope.GetFunction(call.Function)
-  if fn == nil {
-    // TODO: make this cleaner, maybe move built-in functions someplace else
-    if call.Function == "len" {
-      if len(call.Arguments) != 1 {
-        return nil, errors.New("len takes only one argument")
-      }
-      return builtInLen(call.Arguments[0], scope)
-    }
-    return nil, fmt.Errorf("function name '%s' was never declared", call.Function)
+  fn, err := evaluateExpression(call.Function, scope)
+  if err != nil {
+    return nil, err
   }
-  decl := fn.Decleration
-  if len(decl.Parameters) != len(call.Arguments) {
-    return nil, fmt.Errorf("expected '%d' arguments but got '%d' for call to '%s'", len(decl.Parameters), len(call.Arguments), call.Function)
+  // expect that the expression evaluates to ScopedFunction
+  scopedFn, ok := fn.(*ScopedFunction)
+  if !ok {
+    return nil, errors.New("called expression did not evaluate to function")
+  }
+  // TODO: make this cleaner, maybe move built-in functions someplace else
+  if scopedFn.Function.Symbol == "len" {
+    if len(call.Arguments) != 1 {
+      return nil, errors.New("len takes only one argument")
+    }
+    return builtInLen(call.Arguments[0], scope)
+  }
+  // check that the number of parameters are correct
+  if len(scopedFn.Function.Parameters) != len(call.Arguments) {
+    return nil, fmt.Errorf("expected '%d' arguments but got '%d' for call to '%s'", len(scopedFn.Function.Parameters), len(call.Arguments), call.Function)
   }
   // evaluate arguments and populate scope
   for i, arg := range call.Arguments {
@@ -233,12 +249,12 @@ func evaluateFunctionCall(call *ast.FunctionCall, scope *Scope) (ast.Expression,
       return nil, err
     }
     // TODO: create a good way to compare data type of argument of parameter
-    fn.Scope.Set(decl.Parameters[i].Symbol, exp)
+    scopedFn.Scope.Set(scopedFn.Function.Parameters[i].Symbol, exp)
   }
   // execute statements
-  if err := executeStatement(decl.Body, fn.Scope); err != nil {
+  if err := executeStatement(scopedFn.Function.Body, scopedFn.Scope); err != nil {
     return nil, err
   }
-  return fn.Scope.ReturnValue, nil
+  return scopedFn.Scope.ReturnValue, nil
 }
 

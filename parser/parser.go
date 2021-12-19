@@ -14,7 +14,7 @@ func Parse(tokens []*lexer.Token) (*ast.BlockStatement, error) {
 
   tkn := it.Next()
   for tkn != nil {
-    if tkn.Type == "{" || tkn.Type == "symbol" {
+    if tkn.Type == "{" || (tkn.Type == "symbol" && ast.Symbol(tkn.Value).IsStatementPrefix()) {
       // statement
       stmt, err := parseStatement(tkn, it)
       if err != nil {
@@ -27,6 +27,7 @@ func Parse(tokens []*lexer.Token) (*ast.BlockStatement, error) {
       if err != nil {
         return nil, err
       }
+      // TODO: should probably expect a semicolon here? do some tests.
       block.Statements = append(block.Statements, &ast.ExpressionStatement{Expression: exp})
     }
     tkn = it.Next()

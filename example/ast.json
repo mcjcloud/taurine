@@ -1,0 +1,60 @@
+{
+    "statements": [{
+        "symbol": "x",
+        "symbolType": "obj",
+        "value": {
+            "Value": {
+                "y": {
+                    "Value": 3
+                },
+                "z": {
+                    "symbol": "",
+                    "returnType": "obj",
+                    "parameters": [],
+                    "body": {
+                        "statements": [{
+                            "value": {
+                                "Value": {
+                                    "f": {
+                                        "symbol": "",
+                                        "returnType": "num",
+                                        "parameters": [],
+                                        "body": {
+                                            "statements": [{
+                                                "value": {
+                                                    "Value": 1
+                                                }
+                                            }]
+                                        }
+                                    }
+                                }
+                            }
+                        }]
+                    }
+                }
+            }
+        }
+    }, {
+        "expressions": [{
+            "operator": ".",
+            "leftExpression": {
+                "Name": "x"
+            },
+            "rightExpression": {
+                "operator": ".",
+                "leftExpression": {
+                    "function": {
+                        "Name": "z"
+                    },
+                    "arguments": null
+                },
+                "rightExpression": {
+                    "function": {
+                        "Name": "f"
+                    },
+                    "arguments": null
+                }
+            }
+        }]
+    }]
+}

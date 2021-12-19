@@ -36,19 +36,17 @@ func parseStatement(tkn *lexer.Token, it *lexer.TokenIterator) (ast.Statement, e
       return parseIfStatement(tkn, it)
     } else if tkn.Value == ast.WHILE {
       return parseWhileLoop(tkn, it)
-    } else if tkn.Value == ast.FUNC {
-      return parseFunction(tkn, it)
     } else if tkn.Value == ast.RETURN {
       return parseReturnStatement(tkn, it)
     }
   } else {
-    // it's an expression (identifier)
+    // it's an expression (symbol)
     exp, err := parseExpression(tkn, it, nil)
     if err != nil {
       return nil, err
     }
-    // expect the semicolon
-    if it.Next().Type != ";" {
+    // expect the semicolon if the expression isn't a block
+    if _, ok := exp.(*ast.FunctionLiteral); !ok && it.Next().Type != ";" {
       return nil, errors.New("expected expression statement to end with ';'")
     }
     return &ast.ExpressionStatement{Expression: exp}, nil
@@ -123,6 +121,10 @@ func parseAssignmentExpression(tkn *lexer.Token, dataType ast.Symbol, it *lexer.
     }
   } else if dataType == ast.OBJ {
     if _, ok := exp.(*ast.ObjectLiteral); ok {
+      return exp, nil
+    }
+  } else if dataType == ast.FUNC {
+    if _, ok := exp.(*ast.FunctionLiteral); ok {
       return exp, nil
     }
   }
@@ -230,7 +232,9 @@ func parseWhileLoop(tkn *lexer.Token, it *lexer.TokenIterator) (*ast.WhileLoopSt
   }, nil
 }
 
-func parseFunction(tkn *lexer.Token, it *lexer.TokenIterator) (*ast.FunctionDecleration, error) {
+/*
+// parseFunction at the statement level. This must included
+func parseFunction(tkn *lexer.Token, it *lexer.TokenIterator) (*ast.FunctionLiteral, error) {
   // expect ( return type )
   if nxt := it.Next(); nxt == nil || nxt.Type != "(" {
     return nil, errors.New("expected '('")
@@ -292,13 +296,14 @@ func parseFunction(tkn *lexer.Token, it *lexer.TokenIterator) (*ast.FunctionDecl
   if err != nil {
     return nil, err
   }
-  return &ast.FunctionDecleration{
+  return &ast.FunctionLiteral{
     Symbol:     symbol,
     ReturnType: returnType,
     Parameters: params,
     Body:       body,
   }, nil
 }
+*/
 
 func parseReturnStatement(tkn *lexer.Token, it *lexer.TokenIterator) (*ast.ReturnStatement, error) {
   exp, err := parseExpression(it.Next(), it, nil)

@@ -8,6 +8,31 @@ import (
 )
 
 func evaluateOperation(op *ast.OperationExpression, scope *Scope) (ast.Expression, error) {
+  // check . operator first because it doesn't involve evaluating the right side immediately
+  if op.Operator == "." {
+    left, err := evaluateExpression(op.LeftExpression, scope)
+    if err != nil {
+      return nil, fmt.Errorf("error accessing obj member: %s", err.Error())
+    }
+    if leftObj, ok := left.(*ast.ObjectLiteral); ok {
+      // the right side must be either an identifier, fn call, or another dot operator
+      if rightIdentifier, ok := op.RightExpression.(*ast.Identifier); ok {
+        if leftObj.Value[rightIdentifier.Name] != nil {
+          return evaluateExpression(leftObj.Value[rightIdentifier.Name], scope)
+        }
+      } else if rightFnCall, ok := op.RightExpression.(*ast.FunctionCall); ok {
+        objScope := NewScopeOfObject(leftObj, scope)
+        return evaluateFunctionCall(rightFnCall, objScope)
+      } else if rightDotOp, ok := op.RightExpression.(*ast.OperationExpression); ok && rightDotOp.Operator == ast.DOT {
+        // create a new scope with the parent obj as scope
+        objScope := NewScopeOfObject(leftObj, scope)
+        return evaluateOperation(rightDotOp, objScope)
+      }
+      return nil, errors.New("right side of '.' must be identifier or function call")
+    }
+    return nil, errors.New("'.' operator must be in form obj.identifier")
+  }
+
   left, err := evaluateExpression(op.LeftExpression, scope)
   if err != nil {
     return nil, err
@@ -153,19 +178,6 @@ func evaluateOperation(op *ast.OperationExpression, scope *Scope) (ast.Expressio
       }
     }
     return nil, errors.New("'@' operator must be in form arr@integer")
-  } else if op.Operator == "." {
-    left, err = evaluateExpression(left, scope)
-    if err != nil {
-      return nil, fmt.Errorf("error accessing obj member: %s", err.Error())
-    }
-    if leftObj, ok := left.(*ast.ObjectLiteral); ok {
-      if rightIdentifier, ok := op.RightExpression.(*ast.Identifier); ok {
-        if leftObj.Value[rightIdentifier.Name] != nil {
-          return evaluateExpression(leftObj.Value[rightIdentifier.Name], scope)
-        }
-      }
-    }
-    return nil, errors.New("'.' operator must be in form obj.identifier")
   }
   return nil, errors.New("unrecognized operator")
 }
@@ -180,3 +192,4 @@ func builtInLen(exp ast.Expression, scope *Scope) (*ast.NumberLiteral, error) {
   }
   return nil, errors.New("len can only be called on type str or arr")
 }
+

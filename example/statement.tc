@@ -1,3 +1,11 @@
-var (arr) x = [3];
-etch x@(1 - 1);
-
+var (obj) x = {
+  y: 3,
+  z: func (obj) () {
+    return {
+      f: func (num) () {
+        return 1;
+      }
+    };
+  }
+};
+etch x.z().f();
