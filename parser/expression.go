@@ -26,7 +26,7 @@ func parseExpression(tkn *lexer.Token, it *lexer.TokenIterator, exp ast.Expressi
       }
       return nil, errors.New("invalid boolean value")
     } else if tkn.Type == "symbol" {
-     // check if the symbol is "func", if so this is a func expression
+      // check if the symbol is "func", if so this is a func expression
       if tkn.Value == "func" {
         fn, err := parseFunction(tkn, it)
         if err != nil {
@@ -124,11 +124,6 @@ func parseExpression(tkn *lexer.Token, it *lexer.TokenIterator, exp ast.Expressi
     if err != nil {
       return nil, err
     }
-    /*
-    if rFnCall, ok := right.(*ast.FunctionCall); ok && op.Type == ast.DOT {
-      // TODO: use rFnCall 
-    }
-    */
     operation := &ast.OperationExpression{
       Operator:        ast.Operator(op.Value),
       LeftExpression:  exp,
@@ -162,41 +157,6 @@ func parseExpression(tkn *lexer.Token, it *lexer.TokenIterator, exp ast.Expressi
   } else {
     return exp, nil
   }
-
-  /*
-  // TODO: consider if tkn.Type needs to be checked. If the above cases don't apply, I think we just return exp
-  if tkn.Type == "number" {
-    val, _ := strconv.ParseFloat(tkn.Value, 64)
-    return &ast.NumberLiteral{Value: val}, nil
-  } else if tkn.Type == "string" {
-    return &ast.StringLiteral{Value: tkn.Value}, nil
-  } else if tkn.Type == "bool" {
-    if tkn.Value == "true" {
-      return &ast.BooleanLiteral{Value: true}, nil
-    } else if tkn.Value == "false" {
-      return &ast.BooleanLiteral{Value: false}, nil
-    }
-    return nil, errors.New("invalid boolean value")
-  } else if tkn.Type == "symbol" {
-    return &ast.Identifier{Name: tkn.Value}, nil
-  } else if grpExp, ok := exp.(*ast.GroupExpression); ok {
-    // this ends a group expression
-    return grpExp, nil
-  } else if arrExp, ok := exp.(*ast.ArrayExpression); ok {
-    // this ends an array expression
-    return arrExp, nil
-  } else if fnExp, ok := exp.(*ast.FunctionCall); ok {
-    // this ends a function call expression
-    return fnExp, nil
-  } else if objExp, ok := exp.(*ast.ObjectLiteral); ok {
-    return objExp, nil
-  } else if fnExp, ok := exp.(*ast.FunctionLiteral); ok {
-    // this ends a function literal
-    return fnExp, nil
-  } else {
-    return nil, errors.New("unexpected start of expression")
-  }
-  */
 }
 
 func orderOperations(opExp *ast.OperationExpression) (*ast.OperationExpression, error) {
@@ -216,7 +176,6 @@ func orderOperations(opExp *ast.OperationExpression) (*ast.OperationExpression, 
       rightChild.LeftExpression = opCopy
 
       // recurse to order the right expression
-      // TODO: does this need to be done in a loop?
       rightChild.LeftExpression, err = orderOperations(rightChild.LeftExpression.(*ast.OperationExpression))
       if err != nil {
         return nil, err
@@ -282,15 +241,6 @@ func parseFunction(tkn *lexer.Token, it *lexer.TokenIterator) (*ast.FunctionLite
       Symbol:     paramName,
       SymbolType: dataType,
     })
-
-    // setup for next iteration, should be ',' or ')'
-    //peek = it.Peek()
-    //if peek == nil || peek.Type != "," && peek.Type != ")" {
-    //  return nil, errors.New("expected ')' to end parameters")
-    //}
-    //if peek.Type == "," {
-    //  it.Next()
-    //}
   }
 
   // parse the statement that follows
@@ -310,7 +260,6 @@ func parseFunctionCall(exp ast.Expression, it *lexer.TokenIterator) (*ast.Functi
   var args []ast.Expression
   nxt := it.Next()
   for nxt.Type != ")" {
-    //nxt = it.Next()
     exp, err := parseExpression(nxt, it, nil)
     if err != nil {
       return nil, err

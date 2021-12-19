@@ -1,13 +1,13 @@
 package evaluator
 
 import (
-	"bufio"
-	"errors"
-	"fmt"
-	"os"
-	"strings"
+  "bufio"
+  "errors"
+  "fmt"
+  "os"
+  "strings"
 
-	"github.com/mcjcloud/taurine/ast"
+  "github.com/mcjcloud/taurine/ast"
 )
 
 // Evaluate evaluates the code and does stuff

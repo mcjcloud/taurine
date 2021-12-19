@@ -1,7 +1,7 @@
 package ast
 
 import (
-	"fmt"
+  "fmt"
 )
 
 // Node represents a node in the AST
