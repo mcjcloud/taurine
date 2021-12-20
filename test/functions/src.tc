@@ -1,3 +1,4 @@
+// hello "world"
 func (num) myFuncStatement(num x) {
   return x + 1;
 }
@@ -28,6 +29,7 @@ var (obj) fnReturnFn = {
       },
     };
   },
+  s: "my string",
 };
 
 etch myFuncStatement(0);
