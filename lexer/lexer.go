@@ -36,7 +36,7 @@ func Analyze(source string) (tkns []*Token) {
     // skip whitespace
     if isWhitespace(c) {
       if c == '\n' {
-        tkns = append(tkns, &Token{Type: "newline", Value: "\n"})
+        tkns = append(tkns, &Token{Type: "newline"})
       }
       continue
     }

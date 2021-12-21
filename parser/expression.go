@@ -1,6 +1,7 @@
 package parser
 
 import (
+  "fmt"
   "errors"
   "strconv"
 
@@ -111,7 +112,7 @@ func parseExpression(tkn *lexer.Token, it *lexer.TokenIterator, exp ast.Expressi
       }
       return parseExpression(nxt, it, &ast.ObjectLiteral{Value: value})
     } else {
-      return nil, errors.New("unexpected start of expression")
+      return nil, errors.New(fmt.Sprintf("unexpected start of expression: %s", tkn.Type))
     }
   }
 
@@ -268,6 +269,9 @@ func parseFunctionCall(exp ast.Expression, it *lexer.TokenIterator) (*ast.Functi
     nxt = it.Next()
     if nxt == nil || nxt.Type != "," && nxt.Type != ")" {
       return nil, errors.New("expected ')' to end function call")
+    }
+    if nxt.Type == "," {
+      nxt = it.Next()
     }
   }
   return &ast.FunctionCall{

@@ -1,3 +1,4 @@
+// this example has an error on line 8 (missing semicolon)
 var (obj) x = {
   y: 3,
   z: func (obj) () {

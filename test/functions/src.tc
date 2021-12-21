@@ -3,6 +3,10 @@ func (num) myFuncStatement(num x) {
   return x + 1;
 }
 
+func (num) myFuncWithFunc(func f, num x) {
+  return f(x);
+}
+
 var (func) myStoredFunc = func (num) (num x) {
   return x + 1;
 };
@@ -15,8 +19,10 @@ var (obj) myObj = {
 
 var (obj) nestedObj = {
   anon: {
-    f: func (num) (num x) {
-      return x + 1;
+    f: func (func) (num x) {
+      return func (num) (num y) {
+        return x + y;
+      };
     },
   },
 };
@@ -33,8 +39,9 @@ var (obj) fnReturnFn = {
 };
 
 etch myFuncStatement(0);
-etch myStoredFunc(1);
-etch myObj.anon(2);
-etch nestedObj.anon.f(3);
-etch fnReturnFn.anon().f(4);
+etch myFuncWithFunc(myStoredFunc, 1);
+etch myStoredFunc(2);
+etch myObj.anon(3);
+etch nestedObj.anon.f(4)(1);
+etch fnReturnFn.anon().f(5);
 
