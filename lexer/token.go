@@ -11,6 +11,7 @@ type Token struct {
 // TokenIterator is a structure which allows you to iterate through tokens
 type TokenIterator struct {
   Index  int
+  Row    int
   Tokens []*Token
 }
 
@@ -18,6 +19,7 @@ type TokenIterator struct {
 func NewTokenIterator(tkns []*Token) *TokenIterator {
   return &TokenIterator{
     Index:  -1,
+    Row:    0,
     Tokens: tkns,
   }
 }
@@ -27,12 +29,21 @@ func (it *TokenIterator) Peek() *Token {
   if it.Index == len(it.Tokens)-1 {
     return nil
   }
-  return it.Tokens[it.Index+1]
+  // find the next non-newline token
+  nxt := it.Tokens[it.Index+1]
+  for i := 2; nxt.Type == "newline" && it.Index+i < len(it.Tokens); i++ {
+    nxt = it.Tokens[it.Index+i]
+  }
+  return nxt
 }
 
 // Next advances the iterator by one, returning nil and resetting if the end has been reached
 func (it *TokenIterator) Next() *Token {
   it.Index++
+  for it.Index < len(it.Tokens) && it.Tokens[it.Index].Type == "newline" {
+    it.Row++
+    it.Index++
+  }
   if it.Index >= len(it.Tokens) {
     it.Index = 0
     return nil
@@ -43,6 +54,10 @@ func (it *TokenIterator) Next() *Token {
 // Prev moves the iterator back and returns that token
 func (it *TokenIterator) Prev() *Token {
   it.Index--
+  for it.Index >= 0 && it.Tokens[it.Index].Type == "newline" {
+    it.Row--
+    it.Index--
+  }
   if it.Index < 0 {
     it.Index = 0
     return nil

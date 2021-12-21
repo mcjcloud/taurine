@@ -35,7 +35,7 @@ func main() {
   }
   stmts, err := parser.Parse(tkns)
   if err != nil {
-    fmt.Printf("Parsing Error: %v\n", err)
+    fmt.Printf(err.Error())
     os.Exit(1)
   }
   // check for '--ast' flag

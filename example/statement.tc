@@ -5,7 +5,7 @@ var (obj) x = {
       f: func (num) () {
         return 1;
       }
-    };
+    }
   }
 };
 etch x.z().f();

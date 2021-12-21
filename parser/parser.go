@@ -2,6 +2,8 @@ package parser
 
 import (
   "encoding/json"
+  "fmt"
+  "errors"
 
   "github.com/mcjcloud/taurine/ast"
   "github.com/mcjcloud/taurine/lexer"
@@ -18,14 +20,14 @@ func Parse(tokens []*lexer.Token) (*ast.BlockStatement, error) {
       // statement
       stmt, err := parseStatement(tkn, it)
       if err != nil {
-        return nil, err
+        return nil, errors.New(fmt.Sprintf("error on line %d: %s", it.Row, err.Error()))
       }
       block.Statements = append(block.Statements, stmt)
     } else {
       // expression
       exp, err := parseExpression(tkn, it, nil)
       if err != nil {
-        return nil, err
+        return nil, errors.New(fmt.Sprintf("error on line %d: %s", it.Row, err.Error()))
       }
       // TODO: should probably expect a semicolon here? do some tests.
       block.Statements = append(block.Statements, &ast.ExpressionStatement{Expression: exp})
