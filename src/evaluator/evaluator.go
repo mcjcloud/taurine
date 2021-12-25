@@ -32,10 +32,6 @@ func executeStatement(stmt ast.Statement, scope *Scope) error {
     if err := executeReadStatement(readStmt, scope); err != nil {
       return err
     }
-  } else if declStmt, ok := stmt.(*ast.VariableDecleration); ok {
-    if err := executeVariableDecleration(declStmt, scope); err != nil {
-      return err
-    }
   } else if expStmt, ok := stmt.(*ast.ExpressionStatement); ok {
     _, err := evaluateExpression(expStmt.Expression, scope)
     return err
@@ -164,6 +160,16 @@ func evaluateExpression(exp ast.Expression, scope *Scope) (ast.Expression, error
     return evaluateOperation(op, scope)
   } else if id, ok := exp.(*ast.Identifier); ok {
     return scope.Get(id.Name), nil
+  } else if decl, ok := exp.(*ast.VariableDecleration); ok {
+    val, err := evaluateExpression(decl.Value, scope)
+    if err != nil {
+      return nil, err
+    }
+    if scope.Variables[decl.Symbol] != nil {
+      return nil, fmt.Errorf("variable '%s' already exists", decl.Symbol)
+    }
+    scope.Set(decl.Symbol, val)
+    return val, nil
   } else if asn, ok := exp.(*ast.AssignmentExpression); ok {
     // make sure the identifier exists
     if scope.Get(asn.Identifier.Name) == nil {

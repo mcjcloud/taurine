@@ -85,15 +85,15 @@ With the addition of objects will be the addition of dot notation
 ```
 var (obj) myObj = { hello: "world" };
 etch myObj.hello;
+```
+
+## Functions as expressions
+
+Pass functions as arguments and assign them to variables.
 
 # COMING SOON
 
 The below features have not been implemented yet.
-
-```
-## Functions as expressions
-
-Pass functions as arguments and assign them to variables.
 
 ## Error line numbers
 Compiler does not print line number with the error because it doesn't know which line it was.

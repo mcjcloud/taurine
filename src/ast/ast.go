@@ -45,18 +45,6 @@ func (e *ExpressionStatement) String() string {
   return e.Expression.String()
 }
 
-// VariableDecleration represents a node that is a variable decleration
-type VariableDecleration struct {
-  Symbol     string     `json:"symbol"`
-  SymbolType string     `json:"symbolType"`
-  Value      Expression `json:"value"`
-}
-
-func (v *VariableDecleration) do() {}
-func (v *VariableDecleration) String() string {
-  return fmt.Sprintf("var (%s) %s = %s", v.SymbolType, v.Symbol, v.Value)
-}
-
 // ReturnStatement represents a statement to return a value
 type ReturnStatement struct {
   Value Expression `json:"value"`
@@ -146,6 +134,10 @@ const (
   OBJ = "obj"
   // FUNC represents the function keyword
   FUNC = "func"
+  // IMPORT represents the import keyword
+  IMPORT = "import"
+  // EXPORT represents the export keyword
+  EXPORT = "export"
 )
 
 // Operator represents an operator
@@ -177,7 +169,7 @@ var PRECEDENCE = map[Operator]int{
 
 // IsStatementPrefix returns true if the symbol is a statement prefix
 func (str Symbol) IsStatementPrefix() bool {
-  return str == IF || str == FOR || str == WHILE || str == VAR || str == ETCH || str == READ || str == RETURN
+  return str == IF || str == FOR || str == WHILE || str == ETCH || str == READ || str == RETURN
 }
 
 // IsDataType returns true if the symbol represents a data type
@@ -248,6 +240,18 @@ type FunctionCall struct {
 func (f *FunctionCall) Evaluate() {}
 func (f *FunctionCall) String() string {
   return fmt.Sprintf("%s(%s)", f.Function, f.Arguments)
+}
+
+// VariableDecleration represents a node that is a variable decleration
+type VariableDecleration struct {
+  Symbol     string     `json:"symbol"`
+  SymbolType string     `json:"symbolType"`
+  Value      Expression `json:"value"`
+}
+
+func (v *VariableDecleration) Evaluate() {}
+func (v *VariableDecleration) String() string {
+  return fmt.Sprintf("var (%s) %s = %s", v.SymbolType, v.Symbol, v.Value)
 }
 
 // Identifier represents a variable or some kind of reference

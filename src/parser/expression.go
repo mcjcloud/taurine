@@ -28,15 +28,22 @@ func parseExpression(tkn *lexer.Token, it *lexer.TokenIterator, exp ast.Expressi
       return nil, errors.New("invalid boolean value")
     } else if tkn.Type == "symbol" {
       // check if the symbol is "func", if so this is a func expression
-      if tkn.Value == "func" {
+      if tkn.Value == ast.FUNC {
         fn, err := parseFunction(tkn, it)
         if err != nil {
           return nil, err
         }
         // pass fn back in to see if it is being operated on (e.g. a function call)
         return parseExpression(it.Current(), it, fn)
+      } else if tkn.Value == ast.VAR {
+        vDecl, err := parseVarDeclaration(tkn, it)
+        if err != nil {
+          return nil, err
+        }
+        return parseExpression(it.Current(), it, vDecl)
+      } else {
+        return parseExpression(tkn, it, &ast.Identifier{Name: tkn.Value})
       }
-      return parseExpression(tkn, it, &ast.Identifier{Name: tkn.Value})
     } else if tkn.Type == "[" {
       arrExp, err := parseExpression(it.Next(), it, nil)
       if err != nil {
@@ -112,7 +119,7 @@ func parseExpression(tkn *lexer.Token, it *lexer.TokenIterator, exp ast.Expressi
       }
       return parseExpression(nxt, it, &ast.ObjectLiteral{Value: value})
     } else {
-      return nil, errors.New(fmt.Sprintf("unexpected start of expression: %s", tkn.Type))
+      return nil, errors.New(fmt.Sprintf("unexpected start of expression: (%d, %s)", it.Index, tkn.Type))
     }
   }
 
@@ -187,6 +194,49 @@ func orderOperations(opExp *ast.OperationExpression) (*ast.OperationExpression, 
     }
   }
   return opExp, nil
+}
+
+func parseVarDeclaration(tkn *lexer.Token, it *lexer.TokenIterator) (*ast.VariableDecleration, error) {
+  decl := &ast.VariableDecleration{}
+  if spec := it.Next(); spec.Type != "(" {
+    return nil, errors.New("expected ( after var")
+  }
+
+  t := it.Next()
+  dataType := ast.Symbol(t.Value)
+  if t.Type != "symbol" || !dataType.IsDataType() {
+    return nil, errors.New("expected data type after (")
+  }
+  decl.SymbolType = t.Value
+
+  if spec := it.Next(); spec.Type != ")" {
+    return nil, errors.New("expected ) after data type")
+  }
+
+  sym := it.Next()
+  if sym.Type != "symbol" {
+    return nil, errors.New("expected identifier")
+  }
+  // TODO: this won't work properly. Create another method for reserved words
+  if s := ast.Symbol(sym.Value); s.IsStatementPrefix() || s.IsDataType() {
+    return nil, fmt.Errorf("cannot use variable name '%s' as it is a reserved word", s)
+  }
+  decl.Symbol = sym.Value
+
+  spec := it.Next()
+  if spec.Type == "=" {
+    // do assignment
+    exp := it.Next()
+    val, err := parseAssignmentExpression(exp, dataType, it)
+    if err != nil {
+      return nil, err
+    }
+    decl.Value = val
+  } else {
+    it.Prev()
+  }
+  // TODO: allow multiple assignments with ','
+  return decl, nil
 }
 
 func parseFunction(tkn *lexer.Token, it *lexer.TokenIterator) (*ast.FunctionLiteral, error) {

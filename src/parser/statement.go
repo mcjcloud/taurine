@@ -2,7 +2,6 @@ package parser
 
 import (
   "errors"
-  "fmt"
 
   "github.com/mcjcloud/taurine/ast"
   "github.com/mcjcloud/taurine/lexer"
@@ -26,9 +25,7 @@ func parseStatement(tkn *lexer.Token, it *lexer.TokenIterator) (ast.Statement, e
     }
     return block, nil
   } else if ast.Symbol(tkn.Value).IsStatementPrefix() {
-    if tkn.Value == ast.VAR {
-      return parseVarDecleration(tkn, it)
-    } else if tkn.Value == ast.ETCH {
+    if tkn.Value == ast.ETCH {
       return parseEtchStatement(tkn, it)
     } else if tkn.Value == ast.READ {
       return parseReadStatement(tkn, it)
@@ -48,12 +45,15 @@ func parseStatement(tkn *lexer.Token, it *lexer.TokenIterator) (ast.Statement, e
     // expect the semicolon if the expression isn't a block
     if _, ok := exp.(*ast.FunctionLiteral); !ok && it.Next().Type != ";" {
       return nil, errors.New("expected expression statement to end with ';'")
+    } else if ok && it.Peek().Type == ";" {
+      it.Next()
     }
     return &ast.ExpressionStatement{Expression: exp}, nil
   }
   return nil, errors.New("unrecognized statement")
 }
 
+/*
 func parseVarDecleration(tkn *lexer.Token, it *lexer.TokenIterator) (*ast.VariableDecleration, error) {
   decl := &ast.VariableDecleration{}
   if spec := it.Next(); spec.Type != "(" {
@@ -97,6 +97,7 @@ func parseVarDecleration(tkn *lexer.Token, it *lexer.TokenIterator) (*ast.Variab
   }
   return decl, nil
 }
+*/
 
 func parseAssignmentExpression(tkn *lexer.Token, dataType ast.Symbol, it *lexer.TokenIterator) (ast.Expression, error) {
   exp, err := parseExpression(tkn, it, nil)
@@ -141,8 +142,8 @@ func parseAssignmentExpression(tkn *lexer.Token, dataType ast.Symbol, it *lexer.
     return exp, nil
   }
   return nil, errors.New("assigned type does not match initial value")
-}
 
+}
 func parseEtchStatement(tkn *lexer.Token, it *lexer.TokenIterator) (*ast.EtchStatement, error) {
   exps := []ast.Expression{}
   nxt := it.Next()
@@ -231,79 +232,6 @@ func parseWhileLoop(tkn *lexer.Token, it *lexer.TokenIterator) (*ast.WhileLoopSt
     Statement: stmt,
   }, nil
 }
-
-/*
-// parseFunction at the statement level. This must included
-func parseFunction(tkn *lexer.Token, it *lexer.TokenIterator) (*ast.FunctionLiteral, error) {
-  // expect ( return type )
-  if nxt := it.Next(); nxt == nil || nxt.Type != "(" {
-    return nil, errors.New("expected '('")
-  }
-  nxt := it.Next()
-  if nxt == nil || nxt.Type != "symbol" || !ast.Symbol(nxt.Value).IsDataType() {
-    return nil, errors.New("expected data type")
-  }
-  returnType := nxt.Value
-
-  nxt = it.Next()
-  if nxt == nil || nxt.Type != ")" {
-    return nil, errors.New("expected ')'")
-  }
-
-  // expect symbol
-  nxt = it.Next()
-  if nxt == nil || nxt.Type != "symbol" {
-    return nil, errors.New("expected function name")
-  }
-  symbol := nxt.Value
-
-  // expect ( parameter, parameter, ... )
-  params := make([]*ast.VariableDecleration, 0)
-  if nxt := it.Next(); nxt == nil || nxt.Type != "(" {
-    return nil, errors.New("expected '('")
-  }
-  for nxt.Type != ")" {
-    nxt = it.Next()
-    if nxt == nil {
-      return nil, errors.New("unexpected end of file")
-    }
-    // first expect data type
-    if !ast.Symbol(nxt.Value).IsDataType() {
-      return nil, errors.New("expected data type for parameter")
-    }
-    dataType := nxt.Value
-
-    // next expect symbol
-    nxt = it.Next()
-    if nxt == nil || nxt.Type != "symbol" {
-      return nil, errors.New("expected parameter name")
-    }
-    paramName := nxt.Value
-    params = append(params, &ast.VariableDecleration{
-      Symbol:     paramName,
-      SymbolType: dataType,
-    })
-
-    // setup for next iteration, should be ',' or ')'
-    nxt = it.Next()
-    if nxt == nil || nxt.Type != "," && nxt.Type != ")" {
-      return nil, errors.New("expected ')' to end parameters")
-    }
-  }
-
-  // parse the statement that follows
-  body, err := parseStatement(it.Next(), it)
-  if err != nil {
-    return nil, err
-  }
-  return &ast.FunctionLiteral{
-    Symbol:     symbol,
-    ReturnType: returnType,
-    Parameters: params,
-    Body:       body,
-  }, nil
-}
-*/
 
 func parseReturnStatement(tkn *lexer.Token, it *lexer.TokenIterator) (*ast.ReturnStatement, error) {
   exp, err := parseExpression(it.Next(), it, nil)

@@ -31,6 +31,10 @@ func Parse(tokens []*lexer.Token) (*ast.BlockStatement, error) {
       }
       // TODO: should probably expect a semicolon here? do some tests.
       block.Statements = append(block.Statements, &ast.ExpressionStatement{Expression: exp})
+      // eat a following semicolon
+      if it.Peek().Type == ";" {
+        tkn = it.Next()
+      }
     }
     tkn = it.Next()
   }

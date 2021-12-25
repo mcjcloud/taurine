@@ -28,7 +28,7 @@ syn match commentRe '\/\/.*$'
 syn match closeParenthesisRe ')'
 
 " keywords
-syn keyword basicLanguageKeywords var while if else etch len func return
+syn keyword basicLanguageKeywords var while if else etch len func return import export as from
 syn keyword basicTypes num str bool obj arr func contained nextgroup=closeParenthesisRe skipwhite
 
 syn region stringRe start='"' end='"' 
