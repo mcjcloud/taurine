@@ -1,1 +1,1 @@
-{"statements":[{"symbol":"x","symbolType":"str","value":null},{"expressions":{"Name":"x"},"prompt":{"Value":"Enter a string: "}},{"expressions":[{"Name":"x"}]}]}
+{"statements":[{"expression":{"symbol":"x","symbolType":"str","value":null}},{"expressions":{"Name":"x"},"prompt":{"Value":"Enter a string: "}},{"expressions":[{"Name":"x"}]}]}

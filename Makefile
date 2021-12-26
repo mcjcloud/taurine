@@ -8,5 +8,8 @@ install:
 runtests:
 	cd src && go run ./test/test.go
 
+gentests:
+	cd src && go run ./test/test.go --gen-all
+
 clean:
 	rm taurine

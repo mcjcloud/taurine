@@ -2,5 +2,5 @@ var (num) x = 4;
 var (num) y = 3;
 var (arr) a = [1, 2, 3];
 
-etch a@0 + x * (a@1 / a@2);
+etch a@0 + x * (a@1 / a@2); // 3.666667
 

@@ -38,7 +38,7 @@ func main() {
 
   // for each directory, run the tests
   for _, dir := range dirs {
-    err := testDirectory(filepath.Join(path, dir.Name()))
+    err = testDirectory(filepath.Join(path, dir.Name()))
     if err != nil {
       fmt.Printf("error: %s\n", err.Error())
     }
