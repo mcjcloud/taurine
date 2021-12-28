@@ -3,6 +3,8 @@ package lexer
 import (
   "fmt"
   "regexp"
+
+  "github.com/mcjcloud/taurine/token"
 )
 
 var numberRe = regexp.MustCompile(`[.0-9]`)
@@ -22,9 +24,9 @@ func isOperation(c byte) bool {
 }
 
 // Analyze creates a series of tokens from source code
-func Analyze(source string) (tkns []*Token) {
-  tkns = make([]*Token, 0)
-  scanner := NewScanner(source)
+func Analyze(source string) (tkns []*token.Token) {
+  tkns = make([]*token.Token, 0)
+  scanner := token.NewScanner(source)
 
   // vars for tracking token positions
   for scanner.HasNext() {
@@ -34,7 +36,7 @@ func Analyze(source string) (tkns []*Token) {
     if isWhitespace(c) {
       if c == '\n' {
         //tkns = append(tkns, &Token{Type: "newline"})
-        tkns = append(tkns, NewToken("newline", "", *scanner))
+        tkns = append(tkns, token.NewToken("newline", "", *scanner))
       }
       continue
 
@@ -64,7 +66,7 @@ func Analyze(source string) (tkns []*Token) {
       }
     } else if isSpecial(c) {
       //tkns = append(tkns, &Token{Type: string(c)}) // special characters {}()@,;:= will be their own type
-      tkns = append(tkns, NewToken(string(c), string(c), *scanner))
+      tkns = append(tkns, token.NewToken(string(c), string(c), *scanner))
     } else if isOperation(c) {
       tkns = append(tkns, scanOperation(c, scanner))
     } else if c == '=' {
@@ -72,11 +74,11 @@ func Analyze(source string) (tkns []*Token) {
       nxt := scanner.Next()
       if nxt == '=' {
         //tkns = append(tkns, &Token{Type: "operation", Value: "=="})
-        tkns = append(tkns, NewToken("operation", "==", *scanner))
+        tkns = append(tkns, token.NewToken("operation", "==", *scanner))
       } else {
         scanner.Unread()
         //tkns = append(tkns, &Token{Type: string(c)})
-        tkns = append(tkns, NewToken(string(c), string(c), *scanner))
+        tkns = append(tkns, token.NewToken(string(c), string(c), *scanner))
       }
     } else if numberRe.Match([]byte{c}) { // number literal
       tkns = append(tkns, scanNumber(c, scanner))
@@ -84,7 +86,7 @@ func Analyze(source string) (tkns []*Token) {
       tkn := scan(c, scanner, symbolRe, "symbol")
       if boolRe.MatchString(tkn.Value) { // boolean
         //tkns = append(tkns, &Token{Type: "bool", Value: tkn.Value})
-        tkns = append(tkns, NewToken("bool", tkn.Value, *scanner))
+        tkns = append(tkns, token.NewToken("bool", tkn.Value, *scanner))
       } else {
         tkns = append(tkns, tkn)
       }
@@ -96,7 +98,7 @@ func Analyze(source string) (tkns []*Token) {
 }
 
 // scan a string from the reader, including the double quotes
-func scanString(scanner *Scanner) *Token {
+func scanString(scanner *token.Scanner) *token.Token {
   var val string
   c := scanner.Next()
   for c != '"' {
@@ -109,10 +111,10 @@ func scanString(scanner *Scanner) *Token {
       c = scanner.Next()
     }
   }
-  return NewToken("string", val, *scanner)
+  return token.NewToken("string", val, *scanner)
 }
 
-func scanOperation(c byte, scanner *Scanner) *Token {
+func scanOperation(c byte, scanner *token.Scanner) *token.Token {
   val := string(c)
   b := scanner.Next()
 
@@ -122,10 +124,10 @@ func scanOperation(c byte, scanner *Scanner) *Token {
     scanner.Unread()
   }
 
-  return NewToken("operation", val, *scanner)
+  return token.NewToken("operation", val, *scanner)
 }
 
-func scanNumber(c byte, scanner *Scanner) *Token {
+func scanNumber(c byte, scanner *token.Scanner) *token.Token {
   var val string
   b := c
   if c == '-' {
@@ -135,25 +137,25 @@ func scanNumber(c byte, scanner *Scanner) *Token {
   for numberRe.Match([]byte{b}) {
     val += string(b)
     b = scanner.Next()
-    if b == EOF {
+    if b == token.EOF {
       break
     }
   }
   scanner.Unread()
-  return NewToken("number", val, *scanner)
+  return token.NewToken("number", val, *scanner)
 }
 
-func scan(c byte, scanner *Scanner, re *regexp.Regexp, t string) *Token {
+func scan(c byte, scanner *token.Scanner, re *regexp.Regexp, t string) *token.Token {
   var val string
   b := c
   for re.Match([]byte{b}) {
     val += string(b)
     b = scanner.Next()
-    if b == EOF {
+    if b == token.EOF {
       break
     }
   }
   scanner.Unread()
-  return NewToken(t, val, *scanner)
+  return token.NewToken(t, val, *scanner)
 }
 

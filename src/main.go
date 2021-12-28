@@ -33,11 +33,16 @@ func main() {
     lexer.PrintTokens(tkns)
     os.Exit(0)
   }
-  stmts, err := parser.Parse(tkns)
-  if err != nil {
-    fmt.Println(err.Error())
+  it := lexer.NewTokenIterator(tkns)
+  stmts := parser.Parse(it)
+
+  // print any errors during parsing
+  if len(it.EHandler.Errors) > 0 {
+    fmt.Printf("found %d error(s).\n", len(it.EHandler.Errors))
+    it.PrintErrors()
     os.Exit(1)
   }
+
   // check for '--ast' flag
   if *ast {
     j, err := parser.JsonAst(stmts)

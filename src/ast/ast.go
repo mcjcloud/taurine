@@ -1,7 +1,9 @@
 package ast
 
 import (
-  "fmt"
+	"fmt"
+
+	"github.com/mcjcloud/taurine/token"
 )
 
 // Node represents a node in the AST
@@ -175,6 +177,16 @@ func (str Symbol) IsStatementPrefix() bool {
 // IsDataType returns true if the symbol represents a data type
 func (str Symbol) IsDataType() bool {
   return str == NUM || str == STR || str == BOOL || str == ARR || str == OBJ || str == FUNC
+}
+
+// ErrorNode represents an exoression that couldn't be parsed
+type ErrorNode struct {
+  Token *token.Token
+}
+func (e *ErrorNode) do() {}
+func (e *ErrorNode) Evaluate() {}
+func (e *ErrorNode) String() string {
+  return fmt.Sprintf("error node: %s", e.Token.Value)
 }
 
 // NumberLiteral represents the num data type

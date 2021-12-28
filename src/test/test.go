@@ -72,9 +72,11 @@ func testDirectory(path string) error {
 
   // build the AST from source
   tkns := lexer.Analyze(src)
-  stmts, err := parser.Parse(tkns)
-  if err != nil {
-    return err
+  it := lexer.NewTokenIterator(tkns)
+  stmts := parser.Parse(it)
+  if len(it.EHandler.Errors) > 0 {
+    it.PrintErrors()
+    os.Exit(1)
   }
   j, err := parser.JsonAst(stmts)
   if err != nil {

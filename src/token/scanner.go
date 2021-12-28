@@ -1,4 +1,4 @@
-package lexer
+package token
 
 import (
   "io"
@@ -11,6 +11,7 @@ const EOF byte = 0
 type Scanner struct {
   // inherits from Reader
   *strings.Reader
+  rowLengths   []int
 
   Source       string
   SourceLength int
@@ -25,6 +26,7 @@ func NewScanner(src string) *Scanner {
     SourceLength: len(src),
     Row:          1,
     Col:          1,
+    rowLengths:   []int{1},
   }
 }
 
@@ -43,8 +45,12 @@ func (s *Scanner) Next() byte {
   if c == '\n' {
     s.Row += 1
     s.Col = 1
+    if len(s.rowLengths) < s.Row {
+      s.rowLengths = append(s.rowLengths, 1)
+    }
   } else {
     s.Col += 1
+    s.rowLengths[s.Row -1] = s.Col
   }
   return c
 }
@@ -55,9 +61,9 @@ func (s *Scanner) Unread() {
     panic(err)
   }
   s.Col -= 1
-  if s.Col < 0 {
-    s.Col = 0
+  if s.Col <= 0 {
     s.Row -= 1
+    s.Col = s.rowLengths[s.Row-1]
   }
 }
 

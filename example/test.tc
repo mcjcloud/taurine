@@ -1,1 +1,6 @@
-etch x.z().f();
+func (num) f(num x) {
+  return x + 1
+}
+
+etch f(1);
+
