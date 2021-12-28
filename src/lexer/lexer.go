@@ -35,7 +35,6 @@ func Analyze(source string) (tkns []*token.Token) {
     // skip whitespace
     if isWhitespace(c) {
       if c == '\n' {
-        //tkns = append(tkns, &Token{Type: "newline"})
         tkns = append(tkns, token.NewToken("newline", "", *scanner))
       }
       continue
@@ -65,7 +64,6 @@ func Analyze(source string) (tkns []*token.Token) {
         tkns = append(tkns, scanNumber(c, scanner))
       }
     } else if isSpecial(c) {
-      //tkns = append(tkns, &Token{Type: string(c)}) // special characters {}()@,;:= will be their own type
       tkns = append(tkns, token.NewToken(string(c), string(c), *scanner))
     } else if isOperation(c) {
       tkns = append(tkns, scanOperation(c, scanner))
@@ -73,11 +71,9 @@ func Analyze(source string) (tkns []*token.Token) {
       // check the next one is '=' to see if this is special or an operation
       nxt := scanner.Next()
       if nxt == '=' {
-        //tkns = append(tkns, &Token{Type: "operation", Value: "=="})
         tkns = append(tkns, token.NewToken("operation", "==", *scanner))
       } else {
         scanner.Unread()
-        //tkns = append(tkns, &Token{Type: string(c)})
         tkns = append(tkns, token.NewToken(string(c), string(c), *scanner))
       }
     } else if numberRe.Match([]byte{c}) { // number literal
@@ -85,7 +81,6 @@ func Analyze(source string) (tkns []*token.Token) {
     } else if symbolRe.Match(([]byte{c})) { // symbol
       tkn := scan(c, scanner, symbolRe, "symbol")
       if boolRe.MatchString(tkn.Value) { // boolean
-        //tkns = append(tkns, &Token{Type: "bool", Value: tkn.Value})
         tkns = append(tkns, token.NewToken("bool", tkn.Value, *scanner))
       } else {
         tkns = append(tkns, tkn)

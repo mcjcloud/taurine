@@ -11,10 +11,6 @@ import (
 )
 
 func parseExpression(tkn *token.Token, it *lexer.TokenIterator, exp ast.Expression) ast.Expression {
-  //if _, ok := exp.(*ast.ErrorNode); ok {
-  //  return exp
-  //}
-  // if exp is nil, this is the beginning of the expression
   if exp == nil {
     if tkn.Type == "number" {
       val, _ := strconv.ParseFloat(tkn.Value, 64)
