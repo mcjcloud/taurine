@@ -2,9 +2,7 @@ package lexer
 
 import (
   "fmt"
-  "io"
   "regexp"
-  "strings"
 )
 
 var numberRe = regexp.MustCompile(`[.0-9]`)
@@ -26,80 +24,67 @@ func isOperation(c byte) bool {
 // Analyze creates a series of tokens from source code
 func Analyze(source string) (tkns []*Token) {
   tkns = make([]*Token, 0)
-  srcReader := strings.NewReader(source)
-  for srcReader.Len() > 0 {
-    c, err := srcReader.ReadByte()
-    if err != nil {
-      panic(err)
-    }
+  scanner := NewScanner(source)
+
+  // vars for tracking token positions
+  for scanner.HasNext() {
+    c := scanner.Next()
 
     // skip whitespace
     if isWhitespace(c) {
       if c == '\n' {
-        tkns = append(tkns, &Token{Type: "newline"})
+        //tkns = append(tkns, &Token{Type: "newline"})
+        tkns = append(tkns, NewToken("newline", "", *scanner))
       }
       continue
-    }
 
+    }
     if c == '/' {
       // check if the next character is a /
-      nxt, err := srcReader.ReadByte()
-      if err != nil {
-        panic(err)
-      }
+      nxt := scanner.Next()
       if nxt == '/' {
         // eat every character until a newline is found
         for nxt != '\n' && nxt != '\r' {
-          nxt, err = srcReader.ReadByte()
-          if err != nil {
-            panic(err)
-          }
+          nxt = scanner.Next()
         }
         continue
       } else {
         // otherwise put both of the characters back and keep going
-        srcReader.UnreadByte()
+        scanner.Unread()
       }
     }
 
     if c == '"' {
-      tkns = append(tkns, scanString(srcReader))
+      tkns = append(tkns, scanString(scanner))
     } else if c == '-' {
-      nxt, err := srcReader.ReadByte()
-      if err != nil {
-        panic(err)
-      }
+      nxt := scanner.Next()
       if numberRe.Match([]byte{nxt}) {
-        err = srcReader.UnreadByte()
-        if err != nil {
-          panic(err)
-        }
-        tkns = append(tkns, scanNumber(c, srcReader))
+        scanner.Unread()
+        tkns = append(tkns, scanNumber(c, scanner))
       }
     } else if isSpecial(c) {
-      tkns = append(tkns, &Token{Type: string(c)}) // special characters {}()@,;:= will be their own type
+      //tkns = append(tkns, &Token{Type: string(c)}) // special characters {}()@,;:= will be their own type
+      tkns = append(tkns, NewToken(string(c), string(c), *scanner))
     } else if isOperation(c) {
-      tkns = append(tkns, scanOperation(c, srcReader))
+      tkns = append(tkns, scanOperation(c, scanner))
     } else if c == '=' {
       // check the next one is '=' to see if this is special or an operation
-      nxt, err := srcReader.ReadByte()
-      if err != nil {
-        panic(err)
-      }
+      nxt := scanner.Next()
       if nxt == '=' {
-        tkns = append(tkns, &Token{Type: "operation", Value: "=="})
+        //tkns = append(tkns, &Token{Type: "operation", Value: "=="})
+        tkns = append(tkns, NewToken("operation", "==", *scanner))
       } else {
-        if err = srcReader.UnreadByte(); err != nil {
-          panic(err)
-        }
-        tkns = append(tkns, &Token{Type: string(c)})
+        scanner.Unread()
+        //tkns = append(tkns, &Token{Type: string(c)})
+        tkns = append(tkns, NewToken(string(c), string(c), *scanner))
       }
     } else if numberRe.Match([]byte{c}) { // number literal
-      tkns = append(tkns, scanNumber(c, srcReader))
+      tkns = append(tkns, scanNumber(c, scanner))
     } else if symbolRe.Match(([]byte{c})) { // symbol
-      tkn := scan(c, srcReader, symbolRe, "symbol")
+      tkn := scan(c, scanner, symbolRe, "symbol")
       if boolRe.MatchString(tkn.Value) { // boolean
-        tkns = append(tkns, &Token{Type: "bool", Value: tkn.Value})
+        //tkns = append(tkns, &Token{Type: "bool", Value: tkn.Value})
+        tkns = append(tkns, NewToken("bool", tkn.Value, *scanner))
       } else {
         tkns = append(tkns, tkn)
       }
@@ -111,119 +96,64 @@ func Analyze(source string) (tkns []*Token) {
 }
 
 // scan a string from the reader, including the double quotes
-func scanString(reader *strings.Reader) *Token {
+func scanString(scanner *Scanner) *Token {
   var val string
-  c, err := reader.ReadByte()
-  if err != nil {
-    panic(err)
-  }
+  c := scanner.Next()
   for c != '"' {
     val += string(c)
-    c, err = reader.ReadByte()
-    if err != nil {
-      panic(err)
-    }
+    c = scanner.Next()
     if c == '\\' {
       val += string(c)
-      c, err = reader.ReadByte()
-      if err != nil {
-        panic(err)
-      }
+      c = scanner.Next()
       val += string(c)
-      c, err = reader.ReadByte()
-      if err != nil {
-        panic(err)
-      }
+      c = scanner.Next()
     }
   }
-  return &Token{
-    Type:  "string",
-    Value: val,
-  }
+  return NewToken("string", val, *scanner)
 }
 
-func scanOperation(c byte, reader *strings.Reader) *Token {
+func scanOperation(c byte, scanner *Scanner) *Token {
   val := string(c)
-  b, err := reader.ReadByte()
-  if err != nil {
-    if err == io.EOF {
-      return &Token{
-        Type:  "operation",
-        Value: val,
-      }
-    }
-    panic(err)
-  }
+  b := scanner.Next()
 
   if b == '=' {
     val += string(b)
   } else {
-    if err = reader.UnreadByte(); err != nil {
-      panic(err)
-    }
+    scanner.Unread()
   }
-  return &Token{
-    Type:  "operation",
-    Value: val,
-  }
+
+  return NewToken("operation", val, *scanner)
 }
 
-func scanNumber(c byte, reader *strings.Reader) *Token {
+func scanNumber(c byte, scanner *Scanner) *Token {
   var val string
-  var err error
   b := c
   if c == '-' {
     val += "-"
-    b, err = reader.ReadByte()
-    if err != nil {
-      panic(err)
-    }
+    b = scanner.Next()
   }
   for numberRe.Match([]byte{b}) {
     val += string(b)
-    b, err = reader.ReadByte()
-    if err != nil {
-      if err == io.EOF {
-        break
-      }
-      panic(err)
+    b = scanner.Next()
+    if b == EOF {
+      break
     }
   }
-  if err == nil {
-    err = reader.UnreadByte()
-  }
-  if err != nil && err != io.EOF {
-    panic(err)
-  }
-  return &Token{
-    Type:  "number",
-    Value: val,
-  }
+  scanner.Unread()
+  return NewToken("number", val, *scanner)
 }
 
-func scan(c byte, reader *strings.Reader, re *regexp.Regexp, t string) *Token {
+func scan(c byte, scanner *Scanner, re *regexp.Regexp, t string) *Token {
   var val string
-  var err error
   b := c
   for re.Match([]byte{b}) {
     val += string(b)
-    b, err = reader.ReadByte()
-    if err != nil {
-      if err == io.EOF {
-        break
-      }
-      panic(err)
+    b = scanner.Next()
+    if b == EOF {
+      break
     }
   }
-  if err == nil {
-    err = reader.UnreadByte()
-  }
-  if err != nil && err != io.EOF {
-    panic(err)
-  }
-  return &Token{
-    Type:  t,
-    Value: val,
-  }
+  scanner.Unread()
+  return NewToken(t, val, *scanner)
 }
 
