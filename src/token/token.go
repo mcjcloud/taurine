@@ -1,7 +1,5 @@
 package token
 
-import "fmt"
-
 // Pos represents the position of a Token
 type Pos struct {
 	Row    int // the row in the file (number of newlines)
@@ -14,13 +12,6 @@ type Token struct {
 	Type     string
 	Value    string
   Position Pos
-}
-func (t *Token) String() string {
-  if t.Type == "string" {
-    return fmt.Sprintf("\"%s\"", t.Value)
-  } else {
-    return t.Value
-  }
 }
 
 func NewToken(t, v string, scanner Scanner) *Token {

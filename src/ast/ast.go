@@ -232,7 +232,7 @@ type StringLiteral struct {
 
 func (s *StringLiteral) Evaluate() {}
 func (s *StringLiteral) String() string {
-  return fmt.Sprintf("\"%s\"", s.Value)
+  return s.Value
 }
 
 // BooleanLiteral represents a bool

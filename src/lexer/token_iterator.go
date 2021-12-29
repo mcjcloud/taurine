@@ -136,7 +136,11 @@ func (it *TokenIterator) PrintErrors() {
       }
       // update colStart and print the token
       colStart = t.Position.Col+t.Position.Length
-      fmt.Printf(t.String())
+      if t.Type == "string" {
+        fmt.Printf("\"%s\"", t.Value)
+      } else {
+        fmt.Printf(t.Value)
+      }
     }
     fmt.Println()
 
