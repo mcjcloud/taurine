@@ -1,9 +1,9 @@
 package parser
 
 import (
-  "github.com/mcjcloud/taurine/ast"
-  "github.com/mcjcloud/taurine/token"
-  "github.com/mcjcloud/taurine/lexer"
+	"github.com/mcjcloud/taurine/ast"
+	"github.com/mcjcloud/taurine/lexer"
+	"github.com/mcjcloud/taurine/token"
 )
 
 func parseStatement(tkn *token.Token, it *lexer.TokenIterator) ast.Statement {
@@ -31,6 +31,10 @@ func parseStatement(tkn *token.Token, it *lexer.TokenIterator) ast.Statement {
       return parseWhileLoop(tkn, it)
     } else if tkn.Value == ast.RETURN {
       return parseReturnStatement(tkn, it)
+    } else if tkn.Value == ast.IMPORT {
+      return parseImportStatement(tkn, it)
+    } else if tkn.Value == ast.EXPORT {
+      return parseExportStatement(tkn, it)
     }
   } else {
     // it's an expression (symbol)
@@ -120,3 +124,97 @@ func parseReturnStatement(tkn *token.Token, it *lexer.TokenIterator) ast.Stateme
   it.Next()
   return &ast.ReturnStatement{Value: exp}
 }
+
+func parseImportStatement(tkn *token.Token, it *lexer.TokenIterator) ast.Statement {
+  ids := make([]*ast.Identifier, 0)
+  nxt := it.Next()
+  exp := parseExpression(nxt, it, nil)
+  if id, ok := exp.(*ast.Identifier); !ok {
+    it.SkipStatement()
+    return it.EHandler.Add(nxt, "expected identifier.")
+  } else {
+    ids = append(ids, id)
+  }
+  for nxt = it.Next(); nxt.Type == ","; nxt = it.Next() {
+    idExp := parseExpression(it.Next(), it, nil)
+    if id, ok := idExp.(*ast.Identifier); !ok {
+      it.SkipStatement()
+      return it.EHandler.Add(nxt, "expected identifier.")
+    } else {
+      ids = append(ids, id)
+    }
+  }
+  // expect FROM
+  if nxt.Value != ast.FROM {
+    it.SkipStatement()
+    return it.EHandler.Add(nxt, "expected 'from'")
+  }
+  // expect string literal
+  if nxt = it.Next(); nxt.Type != "string" {
+    it.SkipStatement()
+    return it.EHandler.Add(nxt, "expected path to file")
+  }
+  source := nxt.Value
+  // expect semicolon
+  if p := it.Peek(); p.Type != ";" {
+    return it.EHandler.Add(nxt, "expected ';' to end import statement")
+  }
+  it.Next()
+  return &ast.ImportStatement{
+    Source: source,
+    Imports: ids,
+  }
+}
+
+func parseExportStatement(tkn *token.Token, it *lexer.TokenIterator) ast.Statement {
+  // parse the exported expression
+  exp := parseExpression(it.Next(), it, nil)
+
+  curr := it.Current()
+  var nxt *token.Token
+  if nxt = it.Next(); nxt.Value == ast.AS {
+    // expect an identifier
+    idExp := parseExpression(it.Next(), it, nil)
+    if id, ok := idExp.(*ast.Identifier); !ok {
+      e := it.Current()
+      it.SkipStatement()
+      return it.EHandler.Add(e, "expected identifier")
+    } else {
+      return &ast.ExportStatement{
+        Identifier: id,
+        Value: exp,
+      }
+    }
+  }
+
+  // expect semicolon
+  if nxt.Type != ";" {
+    return it.EHandler.Add(curr, "expected ';' to end export statement")
+  }
+
+  // if AS is not used, the identifier should exist in the value
+  // either a function or variable
+  var id *ast.Identifier
+  if fn, ok := exp.(*ast.FunctionLiteral); ok {
+    id = &ast.Identifier{
+      Name: fn.Symbol,
+    }
+  } else if v, ok := exp.(*ast.VariableDecleration); ok {
+    id = &ast.Identifier{
+      Name: v.Symbol,
+    }
+  } else if i, ok := exp.(*ast.Identifier); ok {
+    id = &ast.Identifier{
+      Name: i.Name,
+    }
+  } else {
+    return it.EHandler.Add(nxt, "expected variable, function, or identifier")
+  }
+
+  // build the export statement
+  return &ast.ExportStatement{
+    Identifier: id,
+    Value: exp,
+  }
+}
+

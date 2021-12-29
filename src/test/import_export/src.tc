@@ -1,0 +1,12 @@
+import a from "code.tc";
+import c, d from "code2.tc";
+
+export var (num) x = 3;
+
+export func (num) f(num y) {
+  return y + 1;
+};
+
+var (num) z = 10;
+export z;
+

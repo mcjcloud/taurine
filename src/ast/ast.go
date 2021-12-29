@@ -104,6 +104,28 @@ func (w *WhileLoopStatement) String() string {
   return w.Condition.String()
 }
 
+// ImportStatement represents an import statement
+type ImportStatement struct {
+  Source  string        `json:"source"`
+  Imports []*Identifier `json:"imports"`
+}
+
+func (i *ImportStatement) do() {}
+func (i *ImportStatement) String() string {
+  return fmt.Sprintf("import %s from %s", i.Imports, i.Source)
+}
+
+// ExportStatement represents an export statement
+type ExportStatement struct {
+  Identifier *Identifier `json:"identifier"`
+  Value      Expression  `json:"value"`
+}
+
+func (e *ExportStatement) do() {}
+func (e *ExportStatement) String() string {
+  return fmt.Sprintf("export %s as %s", e.Value, e.Identifier)
+}
+
 // TODO: add for loops
 
 // Symbol is a type which represents the possible beginning symbols of a statement
@@ -140,6 +162,10 @@ const (
   IMPORT = "import"
   // EXPORT represents the export keyword
   EXPORT = "export"
+  // AS represents as keyword
+  AS = "as"
+  // FROM represents from keyword
+  FROM = "from"
 )
 
 // Operator represents an operator
@@ -171,7 +197,7 @@ var PRECEDENCE = map[Operator]int{
 
 // IsStatementPrefix returns true if the symbol is a statement prefix
 func (str Symbol) IsStatementPrefix() bool {
-  return str == IF || str == FOR || str == WHILE || str == ETCH || str == READ || str == RETURN
+  return str == IF || str == FOR || str == WHILE || str == ETCH || str == READ || str == RETURN || str == IMPORT || str == EXPORT
 }
 
 // IsDataType returns true if the symbol represents a data type
@@ -206,7 +232,7 @@ type StringLiteral struct {
 
 func (s *StringLiteral) Evaluate() {}
 func (s *StringLiteral) String() string {
-  return s.Value
+  return fmt.Sprintf("\"%s\"", s.Value)
 }
 
 // BooleanLiteral represents a bool

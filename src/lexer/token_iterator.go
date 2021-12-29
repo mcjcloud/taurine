@@ -128,7 +128,7 @@ func (it *TokenIterator) PrintErrors() {
 
     // print each token in the row with the error
     row := it.GetRow(e.Token.Position.Row)
-    var colStart int
+    colStart := 1
     for _, t := range row {
       // print spaces leading up to the beginning of each token
       for i := colStart; i < t.Position.Col; i += 1 {
@@ -136,7 +136,7 @@ func (it *TokenIterator) PrintErrors() {
       }
       // update colStart and print the token
       colStart = t.Position.Col+t.Position.Length
-      fmt.Printf(t.Value)
+      fmt.Printf(t.String())
     }
     fmt.Println()
 
