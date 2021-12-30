@@ -56,11 +56,11 @@ func main() {
     os.Exit(0)
   }
 
-  // check for import cycles
+  // TODO: check for import cycles
   it.IGraph.Print(absPath)
 
   // evaluate 
-  err = evaluator.Evaluate(tree)
+  err = evaluator.Evaluate(tree, it.IGraph)
   if err != nil {
     fmt.Printf("eval error: %s", err)
   }

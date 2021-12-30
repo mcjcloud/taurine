@@ -2,9 +2,10 @@ package lexer
 
 import (
 	"fmt"
+	"io/ioutil"
 	"path"
-  "io/ioutil"
 
+	"github.com/mcjcloud/taurine/ast"
 	"github.com/mcjcloud/taurine/token"
 	"github.com/mcjcloud/taurine/util"
 )

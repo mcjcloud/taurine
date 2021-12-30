@@ -1,1 +1,1 @@
-import c, d from "code2.tc";
+export var (num) a = 3;

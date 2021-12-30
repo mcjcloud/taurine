@@ -1,12 +1,12 @@
 import a from "code.tc";
-import e from "../functions/src.tc";
+import add from "code2.tc";
 
 export var (num) x = 3;
 
 export func (num) f(num y) {
-  return y + 1;
+  return add(y, 1);
 };
 
-var (num) z = 10;
-export z;
+etch a;
+etch f(a);
 

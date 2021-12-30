@@ -5,13 +5,15 @@ import (
   "errors"
   "fmt"
   "os"
+  "path"
   "strings"
 
   "github.com/mcjcloud/taurine/ast"
+  "github.com/mcjcloud/taurine/util"
 )
 
 // Evaluate evaluates the code and does stuff
-func Evaluate(tree *ast.Ast) error {
+func Evaluate(tree *ast.Ast, importGraph *util.ImportGraph) error {
   // check that the ast has a blockstatement
   var block *ast.BlockStatement
   if b, ok := tree.Statement.(*ast.BlockStatement); !ok {
@@ -23,10 +25,20 @@ func Evaluate(tree *ast.Ast) error {
   // execute block statements
   scope := NewScope()
   for _, stmt := range block.Statements {
-    // do the statement
-    err := executeStatement(stmt, scope)
-    if err != nil {
-      return err
+    if importStmt, ok := stmt.(*ast.ImportStatement); ok {
+      if err := executeImportStatement(importStmt, scope, tree,  importGraph); err != nil {
+        return err
+      }
+    } else if exportStmt, ok := stmt.(*ast.ExportStatement); ok {
+      if err := executeExportStatement(exportStmt, scope, tree); err != nil {
+        return err
+      }
+    } else {
+      // do the statement
+      err := executeStatement(stmt, scope)
+      if err != nil {
+        return err
+      }
     }
   }
   return nil
@@ -164,6 +176,43 @@ func executeVariableDecleration(stmt *ast.VariableDecleration, scope *Scope) err
   return nil
 }
 
+func executeImportStatement(stmt *ast.ImportStatement, scope *Scope, tree *ast.Ast, g *util.ImportGraph) error {
+  absPath := path.Clean(path.Join(path.Dir(tree.FilePath), stmt.Source))
+  // check that the referenced ast has been evaluated 
+  var node *util.ImportNode
+  if n, ok := g.Nodes[absPath]; !ok {
+    return fmt.Errorf("could not find referenced file %s", absPath)
+  } else if !n.Ast.Evaluated {
+    evalErr := Evaluate(n.Ast, g)
+    if evalErr != nil {
+      return evalErr
+    }
+    n.Ast.Evaluated = true
+    node = n
+  }
+
+  // imported values should now exist in the Ast exports
+  // add all the evaluated exports to the scope
+  for _, id := range stmt.Imports {
+    if exp, ok := node.Ast.Exports[id.Name]; !ok {
+      return fmt.Errorf("symbol '%s' is not exported from %s", id.Name, absPath)
+    } else {
+      scope.Set(id.Name, exp)
+    }
+  }
+  return nil
+}
+
+func executeExportStatement(stmt *ast.ExportStatement, scope *Scope, tree *ast.Ast) error {
+  // evaluate the expression value
+  val, err := evaluateExpression(stmt.Value, scope)
+  if err != nil {
+    return err
+  }
+  tree.Exports[stmt.Identifier.Name] = val
+  return nil
+}
+
 func evaluateExpression(exp ast.Expression, scope *Scope) (ast.Expression, error) {
   if op, ok := exp.(*ast.OperationExpression); ok {
     return evaluateOperation(op, scope)
@@ -174,10 +223,12 @@ func evaluateExpression(exp ast.Expression, scope *Scope) (ast.Expression, error
     if err != nil {
       return nil, err
     }
+
     if scope.Variables[decl.Symbol] != nil {
       return nil, fmt.Errorf("variable '%s' already exists", decl.Symbol)
     }
     scope.Set(decl.Symbol, val)
+
     return val, nil
   } else if asn, ok := exp.(*ast.AssignmentExpression); ok {
     // make sure the identifier exists
@@ -188,7 +239,8 @@ func evaluateExpression(exp ast.Expression, scope *Scope) (ast.Expression, error
     if err != nil {
       return nil, err
     }
-   // update the scope and return the evaluated value
+
+    // update the scope and return the evaluated value
     scope.Set(asn.Identifier.Name, val)
     return val, nil
   } else if fnCall, ok := exp.(*ast.FunctionCall); ok {
@@ -204,6 +256,7 @@ func evaluateExpression(exp ast.Expression, scope *Scope) (ast.Expression, error
       Scope: scope,
       Function: fnVal,
     }
+
     // if there is a symbol name, store the function in scope
     // TODO: eventually I should distinguish between functinos and anon functions..
     // right now, you could name a variable function and it could be stored twice

@@ -34,6 +34,7 @@ func Parse(it *lexer.TokenIterator) *ast.Ast {
   return &ast.Ast{
     FilePath:  it.SourcePath,
     Statement: block,
+    Exports:   make(map[string]ast.Expression),
   }
 }
 

@@ -29,6 +29,7 @@ type Ast struct {
   FilePath  string                `json:"file_path"`  // the absolute path to the source code; will be used for referencing
   Exports   map[string]Expression `json:"exports"`    // used during execution to map variable names to resolved values
   Statement Statement             `json:"statement"`  // the parsed AST root
+  Evaluated bool                  `json:"evaluated"`  // true if the AST as already been evaluated (used during execution)
 }
 
 func (a *Ast) String() string {

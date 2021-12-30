@@ -172,7 +172,12 @@ func parseImportStatement(tkn *token.Token, it *lexer.TokenIterator) ast.Stateme
   // iterator created, add a mapping to the import graph
   dest := path.Clean(path.Join(path.Dir(it.SourcePath), source))
   node := it.IGraph.Add(it.SourcePath, dest)
+
+  // parse referenced file and consume errors
   refTree := Parse(refIt)
+  for _, e := range refIt.EHandler.Errors {
+    it.EHandler.Errors = append(it.EHandler.Errors, e)
+  }
   node.SetAst(refTree)
 
   // return the import statement node

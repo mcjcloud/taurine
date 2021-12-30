@@ -91,7 +91,7 @@ func testDirectory(path string) error {
 
   // evaluate test code
   fmt.Printf("testing output... ")
-  if err := evaluateTestCode(path, tree); err != nil {
+  if err := evaluateTestCode(path, tree, it.IGraph); err != nil {
     return err
   }
 
@@ -107,7 +107,7 @@ func testDirectory(path string) error {
   return nil
 }
 
-func evaluateTestCode(path string, tree *ast.Ast) error {
+func evaluateTestCode(path string, tree *ast.Ast, g *util.ImportGraph) error {
   // set stdin to input.txt for program execution
   in, err := os.Open(filepath.Join(path, "input.txt"))
   if err != nil {
@@ -129,6 +129,6 @@ func evaluateTestCode(path string, tree *ast.Ast) error {
   os.Stdout = out
 
   // execute the program
-  return evaluator.Evaluate(tree)
+  return evaluator.Evaluate(tree, g)
 }
 
