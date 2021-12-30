@@ -1,5 +1,5 @@
 import a from "code.tc";
-import c, d from "code2.tc";
+import e from "../functions/src.tc";
 
 export var (num) x = 3;
 

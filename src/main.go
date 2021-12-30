@@ -1,19 +1,21 @@
 package main
 
 import (
-  "flag"
-  "fmt"
-  "io/ioutil"
-  "os"
+	"flag"
+	"fmt"
+	"io/ioutil"
+	"os"
+	"path/filepath"
 
-  "github.com/mcjcloud/taurine/evaluator"
-  "github.com/mcjcloud/taurine/lexer"
-  "github.com/mcjcloud/taurine/parser"
+	"github.com/mcjcloud/taurine/evaluator"
+	"github.com/mcjcloud/taurine/lexer"
+	"github.com/mcjcloud/taurine/parser"
+	"github.com/mcjcloud/taurine/util"
 )
 
 
 func main() {
-  var ast = flag.Bool("ast", false, "print abstract syntax tree")
+  var printAst = flag.Bool("print-ast", false, "print abstract syntax tree")
   var printTokens = flag.Bool("print-tokens", false, "print the tokenized source code")
   flag.Parse()
 
@@ -33,8 +35,13 @@ func main() {
     lexer.PrintTokens(tkns)
     os.Exit(0)
   }
-  it := lexer.NewTokenIterator(tkns)
-  stmts := parser.Parse(it)
+  absPath, err := filepath.Abs(flag.Arg(0))
+  it := lexer.NewTokenIterator(tkns, absPath, util.NewImportGraph())
+  if err != nil {
+    fmt.Printf("Could not get absolute path to source file: %s\n", err.Error())
+    os.Exit(1)
+  }
+  tree := parser.Parse(it)
 
   // print any errors during parsing
   if len(it.EHandler.Errors) > 0 {
@@ -44,16 +51,18 @@ func main() {
   }
 
   // check for '--ast' flag
-  if *ast {
-    j, err := parser.JsonAst(stmts)
-    if err != nil {
-      fmt.Printf("could not create AST JSON: %s\n", err.Error())
-    }
-    fmt.Printf("%s", j)
-  } else {
-    err = evaluator.Evaluate(stmts)
-    if err != nil {
-      fmt.Printf("eval error: %s", err)
-    }
+  if *printAst {
+    fmt.Println(tree)
+    os.Exit(0)
+  }
+
+  // check for import cycles
+  it.IGraph.Print(absPath)
+
+  // evaluate 
+  err = evaluator.Evaluate(tree)
+  if err != nil {
+    fmt.Printf("eval error: %s", err)
   }
 }
+

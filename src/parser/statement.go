@@ -1,9 +1,12 @@
 package parser
 
 import (
+  "path"
+
 	"github.com/mcjcloud/taurine/ast"
 	"github.com/mcjcloud/taurine/lexer"
 	"github.com/mcjcloud/taurine/token"
+	"github.com/mcjcloud/taurine/util"
 )
 
 func parseStatement(tkn *token.Token, it *lexer.TokenIterator) ast.Statement {
@@ -160,6 +163,19 @@ func parseImportStatement(tkn *token.Token, it *lexer.TokenIterator) ast.Stateme
     return it.EHandler.Add(nxt, "expected ';' to end import statement")
   }
   it.Next()
+
+  // start parsing the referenced file
+  refIt, err := it.CreateIteratorForImport(source)
+  if _, ok := err.(util.AlreadyParsedError); !ok && err != nil {
+    return it.EHandler.Add(nxt, "error finding referenced file")
+  }
+  // iterator created, add a mapping to the import graph
+  dest := path.Clean(path.Join(path.Dir(it.SourcePath), source))
+  node := it.IGraph.Add(it.SourcePath, dest)
+  refTree := Parse(refIt)
+  node.SetAst(refTree)
+
+  // return the import statement node
   return &ast.ImportStatement{
     Source: source,
     Imports: ids,

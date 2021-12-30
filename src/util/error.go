@@ -1,6 +1,8 @@
-package error
+package util
 
 import (
+  "fmt"
+
   "github.com/mcjcloud/taurine/ast"
   "github.com/mcjcloud/taurine/token"
 )
@@ -16,7 +18,7 @@ type ErrorHandler struct {
   Errors []ParseError
 }
 
-func NewHandler() *ErrorHandler {
+func NewErrorHandler() *ErrorHandler {
   return &ErrorHandler{
     Errors: make([]ParseError, 0),
   }
@@ -30,5 +32,13 @@ func (h *ErrorHandler) Add(tkn *token.Token, msg string) *ast.ErrorNode {
   return &ast.ErrorNode{
     Token: tkn,
   }
+}
+
+// Specific errors that can occur
+type AlreadyParsedError struct {
+  Path string
+}
+func (a AlreadyParsedError) Error() string {
+  return fmt.Sprintf("file %s has already been parsed.", a.Path)
 }
 

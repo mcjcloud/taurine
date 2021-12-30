@@ -1,6 +1,7 @@
 package ast
 
 import (
+  "encoding/json"
 	"fmt"
 
 	"github.com/mcjcloud/taurine/token"
@@ -21,6 +22,21 @@ type Statement interface {
 type Expression interface {
   Node
   Evaluate()
+}
+
+// Ast represents the Abstract Syntax Tree for a file
+type Ast struct {
+  FilePath  string                `json:"file_path"`  // the absolute path to the source code; will be used for referencing
+  Exports   map[string]Expression `json:"exports"`    // used during execution to map variable names to resolved values
+  Statement Statement             `json:"statement"`  // the parsed AST root
+}
+
+func (a *Ast) String() string {
+  j, err := json.Marshal(a.Statement)
+  if err != nil {
+    return fmt.Sprintf("error: %s", err.Error())
+  }
+  return string(j)
 }
 
 // BlockStatement is a Statement which consists of multiple statements

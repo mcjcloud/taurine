@@ -1,14 +1,12 @@
 package parser
 
 import (
-  "encoding/json"
-
   "github.com/mcjcloud/taurine/ast"
   "github.com/mcjcloud/taurine/lexer"
 )
 
 // Parse parses a series of tokens as a syntax tree
-func Parse(it *lexer.TokenIterator) *ast.BlockStatement {
+func Parse(it *lexer.TokenIterator) *ast.Ast {
   block := &ast.BlockStatement{}
 
   tkn := it.Next()
@@ -33,11 +31,16 @@ func Parse(it *lexer.TokenIterator) *ast.BlockStatement {
     }
     tkn = it.Next()
   }
-  return block
+  return &ast.Ast{
+    FilePath:  it.SourcePath,
+    Statement: block,
+  }
 }
 
+/*
 func JsonAst(stmt *ast.BlockStatement) (string, error)  {
   j, err := json.Marshal(stmt)
   return string(j), err
 }
+*/
 

@@ -12,6 +12,7 @@ import (
 	"github.com/mcjcloud/taurine/evaluator"
 	"github.com/mcjcloud/taurine/lexer"
 	"github.com/mcjcloud/taurine/parser"
+	"github.com/mcjcloud/taurine/util"
 
 	"github.com/kylelemons/godebug/diff"
 )
@@ -71,30 +72,26 @@ func testDirectory(path string) error {
   src := string(bytes)
 
   // build the AST from source
+  absPath, err := filepath.Abs(filepath.Join(path, "src.tc"))
   tkns := lexer.Analyze(src)
-  it := lexer.NewTokenIterator(tkns)
-  stmts := parser.Parse(it)
+  it := lexer.NewTokenIterator(tkns, absPath, util.NewImportGraph())
+  tree := parser.Parse(it)
   if len(it.EHandler.Errors) > 0 {
     it.PrintErrors()
     os.Exit(1)
   }
-  j, err := parser.JsonAst(stmts)
-  if err != nil {
-    return err
-  }
-  ast := strings.TrimSpace(j)
 
   // compare the AST results
   fmt.Printf("testing ast... ")
-  if ast != expectedAst {
-    return errors.New(fmt.Sprintf("expected ast does not match actual ast\n%s", diff.Diff(expectedAst, ast)))
+  if treeStr := tree.String(); treeStr != expectedAst {
+    return errors.New(fmt.Sprintf("expected ast does not match actual ast\n%s", diff.Diff(expectedAst, treeStr)))
   } else {
     fmt.Printf("done\n")
   }
 
   // evaluate test code
   fmt.Printf("testing output... ")
-  if err := evaluateTestCode(path, stmts); err != nil {
+  if err := evaluateTestCode(path, tree); err != nil {
     return err
   }
 
@@ -110,7 +107,7 @@ func testDirectory(path string) error {
   return nil
 }
 
-func evaluateTestCode(path string, stmts *ast.BlockStatement) error {
+func evaluateTestCode(path string, tree *ast.Ast) error {
   // set stdin to input.txt for program execution
   in, err := os.Open(filepath.Join(path, "input.txt"))
   if err != nil {
@@ -132,6 +129,6 @@ func evaluateTestCode(path string, stmts *ast.BlockStatement) error {
   os.Stdout = out
 
   // execute the program
-  return evaluator.Evaluate(stmts)
+  return evaluator.Evaluate(tree)
 }
 

@@ -11,7 +11,16 @@ import (
 )
 
 // Evaluate evaluates the code and does stuff
-func Evaluate(block *ast.BlockStatement) error {
+func Evaluate(tree *ast.Ast) error {
+  // check that the ast has a blockstatement
+  var block *ast.BlockStatement
+  if b, ok := tree.Statement.(*ast.BlockStatement); !ok {
+    return errors.New("ast must contain block statement")
+  } else {
+    block = b
+  }
+
+  // execute block statements
   scope := NewScope()
   for _, stmt := range block.Statements {
     // do the statement

@@ -1,25 +1,55 @@
 package lexer
 
 import (
-  "fmt"
-  "github.com/mcjcloud/taurine/error"
-  "github.com/mcjcloud/taurine/token"
+	"fmt"
+	"path"
+  "io/ioutil"
+
+	"github.com/mcjcloud/taurine/token"
+	"github.com/mcjcloud/taurine/util"
 )
 
 // TokenIterator is a structure which allows you to iterate through tokens
 type TokenIterator struct {
-	Index    int
-	Tokens   []*token.Token
-  EHandler *error.ErrorHandler
+	Index      int
+	Tokens     []*token.Token
+  EHandler   *util.ErrorHandler
+  IGraph     *util.ImportGraph
+  SourcePath string
 }
 
 // NewTokenIterator creates a new TokenIterator struct
-func NewTokenIterator(tkns []*token.Token) *TokenIterator {
+func NewTokenIterator(tkns []*token.Token, sourcePath string, ig *util.ImportGraph) *TokenIterator {
 	return &TokenIterator{
-		Index:  -1,
-		Tokens: tkns,
-    EHandler: error.NewHandler(),
+		Index:      -1,
+		Tokens:     tkns,
+    SourcePath: sourcePath,
+    EHandler:   util.NewErrorHandler(),
+    IGraph:     ig,
 	}
+}
+
+func (it *TokenIterator) CreateIteratorForImport(relativePath string) (*TokenIterator, error) {
+  absPath := path.Clean(path.Join(path.Dir(it.SourcePath), relativePath))
+
+  // check that the import graph doesn't already contain a parsed AST for this path
+  if _, ok := it.IGraph.Nodes[absPath]; ok {
+    return nil, &util.AlreadyParsedError{
+      Path: absPath,
+    }
+  }
+
+  // read source code for 
+  bytes, err := ioutil.ReadFile(absPath)
+  if err != nil {
+    return nil, fmt.Errorf("error reading referenced source: %s", err.Error())
+  }
+  src := string(bytes)
+
+  // tokenize
+  tkns := Analyze(src)
+
+  return NewTokenIterator(tkns, absPath, it.IGraph), nil
 }
 
 // Peek returns the next token without advancing
