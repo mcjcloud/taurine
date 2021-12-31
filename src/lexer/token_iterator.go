@@ -5,7 +5,6 @@ import (
 	"io/ioutil"
 	"path"
 
-	"github.com/mcjcloud/taurine/ast"
 	"github.com/mcjcloud/taurine/token"
 	"github.com/mcjcloud/taurine/util"
 )

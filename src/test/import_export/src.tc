@@ -1,11 +1,9 @@
 import a from "code.tc";
 import add from "code2.tc";
 
-export var (num) x = 3;
-
-export func (num) f(num y) {
+func (num) f(num y) {
   return add(y, 1);
-};
+}
 
 etch a;
 etch f(a);
