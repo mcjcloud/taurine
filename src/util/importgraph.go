@@ -12,10 +12,13 @@ type ImportGraph struct {
   Nodes  map[string]*ImportNode
 }
 
-func NewImportGraph() *ImportGraph {
+func NewImportGraph(root string) *ImportGraph {
   return &ImportGraph{
-    Matrix: make(map[string][]string),
-    Nodes:  make(map[string]*ImportNode),
+    Matrix: map[string][]string{root: make([]string, 0)},
+    Nodes: map[string]*ImportNode{root: {
+      Path: root,
+      Children: make([]*ImportNode, 0),
+    }},
   }
 }
 
