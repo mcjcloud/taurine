@@ -42,6 +42,9 @@ func NewParseContext(absPath string) (*ParseContext, error) {
   ctx.Iterators[absPath] = lexer.NewTokenIterator(tkns)
   ctx.ErrorHandlers[absPath] = util.NewErrorHandler()
 
+  // setup currentNode
+  ctx.currentNode = ctx.ImportGraph.Nodes[absPath]
+
   return ctx, nil
 }
 
@@ -111,38 +114,43 @@ func (ctx ParseContext) HasErrors() bool {
   return false
 }
 
-// TODO: print all errors
 // PrintErrors prints all errors found during parsing
 func (ctx *ParseContext) PrintErrors() {
-  it := ctx.Iterators[ctx.MainPath]
-  handler := ctx.ErrorHandlers[ctx.MainPath]
-  for _, e := range handler.Errors {
-    // print error message
-    fmt.Printf("error at %d:%d: %s\n", e.Token.Position.Row, e.Token.Position.Col, e.Message)
-
-    // print each token in the row with the error
-    row := it.GetRow(e.Token.Position.Row)
-    colStart := 1
-    for _, t := range row {
-      // print spaces leading up to the beginning of each token
-      for i := colStart; i < t.Position.Col; i += 1 {
-        fmt.Printf(" ")
-      }
-      // update colStart and print the token
-      colStart = t.Position.Col+t.Position.Length
-      if t.Type == "string" {
-        fmt.Printf("\"%s\"", t.Value)
-      } else {
-        fmt.Printf(t.Value)
-      }
+  for path, handler := range ctx.ErrorHandlers {
+    if len(handler.Errors) == 0 {
+      continue
     }
-    fmt.Println()
+    it := ctx.Iterators[path]
 
-    // print underlines up until the error token
-    for i := 0; i < e.Token.Position.Col+e.Token.Position.Length-1; i += 1 {
-      fmt.Printf("~")
+    fmt.Printf("found %d errors in %s\n", len(handler.Errors), path)
+    for _, e := range handler.Errors {
+      // print error message
+      fmt.Printf("%d:%d: %s\n", e.Token.Position.Row, e.Token.Position.Col, e.Message)
+
+      // print each token in the row with the error
+      row := it.GetRow(e.Token.Position.Row)
+      colStart := 1
+      for _, t := range row {
+        // print spaces leading up to the beginning of each token
+        for i := colStart; i < t.Position.Col; i += 1 {
+          fmt.Printf(" ")
+        }
+        // update colStart and print the token
+        colStart = t.Position.Col+t.Position.Length
+        if t.Type == "string" {
+          fmt.Printf("\"%s\"", t.Value)
+        } else {
+          fmt.Printf(t.Value)
+        }
+      }
+      fmt.Println()
+
+      // print underlines up until the error token
+      for i := 0; i < e.Token.Position.Col+e.Token.Position.Length-1; i += 1 {
+        fmt.Printf("~")
+      }
+      fmt.Println("^")
     }
-    fmt.Println("^")
   }
 }
 
