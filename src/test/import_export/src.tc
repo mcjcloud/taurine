@@ -1,7 +1,7 @@
 import a from "code.tc";
 import add from "code2.tc";
 
-export func (num) f(num y) {
+func (num) f(num y) {
   return add(y, 1);
 }
 
