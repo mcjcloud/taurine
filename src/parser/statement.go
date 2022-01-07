@@ -100,12 +100,21 @@ func parseReadStatement(tkn *token.Token, ctx *ParseContext) ast.Statement {
 
 func parseIfStatement(tkn *token.Token, ctx *ParseContext) ast.Statement {
   it := ctx.CurrentIterator()
-  exp := parseExpression(it.Next(), ctx, nil)
 
+  exp := parseExpression(it.Next(), ctx, nil)
   stmt := parseStatement(it.Next(), ctx)
+
+  // check for an else [if]
+  var elif ast.Statement
+  if peek := it.Peek(); peek != nil && peek.Value == ast.ELSE {
+    it.Next()
+    elif = parseStatement(it.Next(), ctx)
+  }
+
   return &ast.IfStatement{
     Condition: exp,
     Statement: stmt,
+    ElseIf:    elif,
   }
 }
 

@@ -1,0 +1,24 @@
+var (num) x = 3;
+
+if x == 3 {
+  etch x;
+}
+
+if x == 0 {
+  etch "0";
+} else if x == 3 {
+  etch "3";
+} else {
+  etch "not 0";
+}
+
+var (str) s = "hello";
+
+if s == "world" {
+  etch "world";
+} else if s == "hi" {
+  etch "hi";
+} else {
+  etch s;
+}
+

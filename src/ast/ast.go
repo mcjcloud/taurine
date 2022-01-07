@@ -103,11 +103,12 @@ func (r *ReadStatement) String() string {
 type IfStatement struct {
   Condition Expression `json:"condition"`
   Statement Statement  `json:"statement"`
+  ElseIf    Statement  `json:"else_if"`   // this may just be a statement in the case of else or another IfStatement in case of else if
 }
 
 func (i *IfStatement) do() {}
 func (i *IfStatement) String() string {
-  return fmt.Sprintf("if %s %s", i.Condition, i.Statement)
+  return fmt.Sprintf("if %s %s else %s", i.Condition, i.Statement, i.ElseIf)
 }
 
 // WhileLoopStatement represents a for loop
@@ -151,6 +152,8 @@ type Symbol string
 const (
   // IF represents the if keyword
   IF = "if"
+  // ELSE represents the else keyword
+  ELSE = "else"
   // FOR represents the for keyword
   FOR = "for"
   // WHILE represents the while keyword

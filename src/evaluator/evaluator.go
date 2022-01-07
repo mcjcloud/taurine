@@ -79,6 +79,10 @@ func executeStatement(stmt ast.Statement, scope *Scope) error {
         if err := executeStatement(ifStmt.Statement, scope); err != nil {
           return err
         }
+      } else if ifStmt.ElseIf != nil {
+        if err := executeStatement(ifStmt.ElseIf, scope); err != nil {
+          return err
+        }
       }
       return nil
     }
