@@ -44,6 +44,15 @@ func main() {
   tree := parser.Parse(ctx)
   ctx.PopImportWithTree(tree)
 
+  // TODO: check for import cycles
+  if cycles := ctx.ImportGraph.FindCycles(); len(cycles) > 0 {
+    fmt.Println("import cycle found.")
+    for _, n := range cycles {
+      fmt.Println(n)
+    }
+    os.Exit(1)
+  }
+
   // print any errors during parsing
   if ctx.HasErrors() {
     ctx.PrintErrors()
@@ -55,9 +64,6 @@ func main() {
     fmt.Println(tree)
     os.Exit(0)
   }
-
-  // TODO: check for import cycles
-  ctx.ImportGraph.Print(absPath)
 
   // evaluate 
   err = evaluator.Evaluate(tree, ctx.ImportGraph)

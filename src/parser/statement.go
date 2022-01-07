@@ -171,10 +171,13 @@ func parseImportStatement(tkn *token.Token, ctx *ParseContext) ast.Statement {
 
   // PushImport updates the context to start parsing the referenced file
   err := ctx.PushImport(source)
-  if _, ok := err.(util.AlreadyParsedError); !ok && err != nil {
+  if _, ok := err.(*util.AlreadyParsedError); !ok && err != nil {
     return handler.Add(nxt, "error finding referenced file")
-  } else if err != nil {
-    panic(err)
+  } else if ok {
+    return &ast.ImportStatement{
+      Source: source,
+      Imports: ids,
+    }
   }
 
   // run Parse and then return ctx to previous state

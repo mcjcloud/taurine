@@ -2,8 +2,13 @@ package util
 
 type Stack []string
 
+func NewStack() *Stack {
+  s := Stack([]string{})
+  return &s
+}
+
 // Creates a new stack
-func NewStack(first string) *Stack {
+func NewStackWith(first string) *Stack {
   arr := []string{first}
   stack := Stack(arr)
   return &stack

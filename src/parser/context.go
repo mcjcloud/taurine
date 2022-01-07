@@ -24,7 +24,7 @@ type ParseContext struct {
 func NewParseContext(absPath string) (*ParseContext, error) {
   ctx := &ParseContext{
     MainPath: absPath,
-    ParseStack: util.NewStack(absPath),
+    ParseStack: util.NewStackWith(absPath),
     Iterators: make(map[string]*lexer.TokenIterator),
     ErrorHandlers: make(map[string]*util.ErrorHandler),
     ImportGraph: util.NewImportGraph(absPath),
@@ -70,6 +70,8 @@ func (ctx *ParseContext) PushImport(relativePath string) error {
 
   // check that the import graph doesn't already contain a parsed AST for this path
   if _, ok := ctx.ImportGraph.Nodes[absPath]; ok {
+    // add the connection in the import tree and indicate that it's already parsed
+    ctx.ImportGraph.Add(ctx.CurrentFilePath(), absPath)
     return &util.AlreadyParsedError{
       Path: absPath,
     }
