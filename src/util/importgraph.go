@@ -12,10 +12,13 @@ type ImportGraph struct {
   Nodes  map[string]*ImportNode
 }
 
-func NewImportGraph() *ImportGraph {
+func NewImportGraph(root string) *ImportGraph {
   return &ImportGraph{
-    Matrix: make(map[string][]string),
-    Nodes:  make(map[string]*ImportNode),
+    Matrix: map[string][]string{root: make([]string, 0)},
+    Nodes: map[string]*ImportNode{root: {
+      Path: root,
+      Children: make([]*ImportNode, 0),
+    }},
   }
 }
 
@@ -101,5 +104,109 @@ func (g *ImportGraph) addMatrixConnection(src, dest string) bool {
 
   g.Matrix[src] = append(g.Matrix[src], dest)
   return true
+}
+
+// FindCycles returns an ordered list representing the import cycle
+func (graph *ImportGraph) FindCycles() []string {
+  w := make([]*ImportNode, len(graph.Nodes))
+  g := make([]*ImportNode, 0)
+  b := make([]*ImportNode, 0)
+  dfsMap := make(map[string]string)
+
+  // populate unvisited set
+  var i int
+  for _, n := range graph.Nodes {
+    w[i] = n
+    i++
+  }
+
+  for len(w) > 0 {
+    // add the first element to the stack
+    n := w[0]
+    w = w[1:]
+    g = append(g, n)
+    dfsMap[n.Path] = ""
+
+    for _, c := range n.Children {
+      if _, ok := dfsMap[c.Path]; !ok {
+        dfsMap[c.Path] = n.Path
+      }
+      l := findCycles(c, &w, &g, &b, dfsMap)
+      if len(l) > 0 {
+        return l
+      }
+      // take c out of g and into b
+      vs := remove(&g, c)
+      g = *vs
+      b = append(b, c)
+    }
+  }
+  return make([]string, 0)
+}
+
+func findCycles(node *ImportNode, w, g, b *[]*ImportNode, dfsMap map[string]string) []string {
+  // take node out of w
+  remove(w, node)
+  // add node to g
+  *g = append(*g, node)
+  // go over the children
+  for _, c := range node.Children {
+    if _, ok := dfsMap[c.Path]; !ok {
+      dfsMap[c.Path] = node.Path
+    }
+    // check b
+    if contains(b, c) {
+      continue
+    }
+    // check g
+    if contains(g, c) {
+      // cycle detected
+      l := []string{c.Path}
+      x := node.Path
+      for x != "" {
+        l = append(l, x)
+        x = dfsMap[x]
+      }
+      return reverse(l)
+    }
+
+    // recursive call
+    l := findCycles(c, w, g, b, dfsMap)
+    if len(l) > 0 {
+      return l
+    }
+    // take c out of g
+    g = remove(g, c)
+    // add c to b
+    *b = append(*b, c)
+  }
+  return make([]string, 0)
+}
+
+func contains(l *[]*ImportNode, v *ImportNode) bool {
+  for _, n := range *l {
+    if n == v {
+      return true
+    }
+  }
+  return false
+}
+
+func remove(l *[]*ImportNode, v *ImportNode) *[]*ImportNode {
+  for i, n := range *l {
+    if n == v {
+      *l =  append((*l)[:i], (*l)[i+1:]...)
+      return l
+    }
+  }
+  return l
+}
+
+func reverse(l []string) []string {
+  res := make([]string, len(l))
+  for i, n := range l {
+    res[len(res)-i-1] = n
+  }
+  return res
 }
 

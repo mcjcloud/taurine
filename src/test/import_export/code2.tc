@@ -1,5 +1,7 @@
-func (num) add(num a, num b) {
-  return a + b;
+import a from "code.tc";
+
+func (num) add(num x, num y) {
+  return x + y;
 }
 
 export add;

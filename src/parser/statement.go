@@ -1,148 +1,153 @@
 package parser
 
 import (
-  "path"
-
 	"github.com/mcjcloud/taurine/ast"
-	"github.com/mcjcloud/taurine/lexer"
 	"github.com/mcjcloud/taurine/token"
 	"github.com/mcjcloud/taurine/util"
 )
 
-func parseStatement(tkn *token.Token, it *lexer.TokenIterator) ast.Statement {
+func parseStatement(tkn *token.Token, ctx *ParseContext) ast.Statement {
+  it := ctx.CurrentIterator()
   if tkn.Type == "{" {
     block := &ast.BlockStatement{Statements: []ast.Statement{}}
     nxt := it.Next()
     for nxt.Type != "}" {
-      stmt := parseStatement(nxt, it)
+      stmt := parseStatement(nxt, ctx)
       block.Statements = append(block.Statements, stmt)
       nxt = it.Next()
 
       if nxt == nil {
-        return it.EHandler.Add(nxt, "Expected '}' but found end of file")
+        return ctx.CurrentErrorHandler().Add(nxt, "Expected '}' but found end of file")
       }
     }
     return block
   } else if ast.Symbol(tkn.Value).IsStatementPrefix() {
     if tkn.Value == ast.ETCH {
-      return parseEtchStatement(tkn, it)
+      return parseEtchStatement(tkn, ctx)
     } else if tkn.Value == ast.READ {
-      return parseReadStatement(tkn, it)
+      return parseReadStatement(tkn, ctx)
     } else if tkn.Value == ast.IF {
-      return parseIfStatement(tkn, it)
+      return parseIfStatement(tkn, ctx)
     } else if tkn.Value == ast.WHILE {
-      return parseWhileLoop(tkn, it)
+      return parseWhileLoop(tkn, ctx)
     } else if tkn.Value == ast.RETURN {
-      return parseReturnStatement(tkn, it)
+      return parseReturnStatement(tkn, ctx)
     } else if tkn.Value == ast.IMPORT {
-      return parseImportStatement(tkn, it)
+      return parseImportStatement(tkn, ctx)
     } else if tkn.Value == ast.EXPORT {
-      return parseExportStatement(tkn, it)
+      return parseExportStatement(tkn, ctx)
     }
   } else {
     // it's an expression (symbol)
-    exp := parseExpression(tkn, it, nil)
+    exp := parseExpression(tkn, ctx, nil)
     // expect the semicolon if the expression isn't a block
     if _, ok := exp.(*ast.FunctionLiteral); !ok && it.Next().Type != ";" {
-      return it.EHandler.Add(it.Current(), "expected expression statement to end with ';'")
+      return ctx.CurrentErrorHandler().Add(it.Current(), "expected expression statement to end with ';'")
     } else if ok && it.Peek().Type == ";" {
       it.Next()
     }
     return &ast.ExpressionStatement{Expression: exp}
   }
-  return it.EHandler.Add(tkn, "unrecognized statement")
+  return ctx.CurrentErrorHandler().Add(tkn, "unrecognized statement")
 }
 
-func parseEtchStatement(tkn *token.Token, it *lexer.TokenIterator) ast.Statement {
+func parseEtchStatement(tkn *token.Token, ctx *ParseContext) ast.Statement {
+  it := ctx.CurrentIterator()
   exps := []ast.Expression{}
   nxt := it.Next()
-  exp := parseExpression(nxt, it, nil)
+  exp := parseExpression(nxt, ctx, nil)
   exps = append(exps, exp)
   nxt = it.Next()
   for nxt.Type == "," {
     nxt = it.Next()
-    exp = parseExpression(nxt, it, nil)
+    exp = parseExpression(nxt, ctx, nil)
     exps = append(exps, exp)
     nxt = it.Next()
   }
   if nxt.Type != ";" {
-    return it.EHandler.Add(nxt, "expected semicolon to end statement")
+    return ctx.CurrentErrorHandler().Add(nxt, "expected semicolon to end statement")
   }
   return &ast.EtchStatement{Expressions: exps}
 }
 
-func parseReadStatement(tkn *token.Token, it *lexer.TokenIterator) ast.Statement {
+func parseReadStatement(tkn *token.Token, ctx *ParseContext) ast.Statement {
+  it := ctx.CurrentIterator()
   // parse identifier
   nxt := it.Next()
-  exp := parseExpression(nxt, it, nil)
+  exp := parseExpression(nxt, ctx, nil)
   idExp, ok := exp.(*ast.Identifier)
   if !ok {
-    return it.EHandler.Add(it.Current(), "expected identifier at beginning of 'read' statement")
+    return ctx.CurrentErrorHandler().Add(it.Current(), "expected identifier at beginning of 'read' statement")
   }
   if nxt = it.Next(); nxt.Type != "," && nxt.Type != ";" {
-    return it.EHandler.Add(nxt, "expected semicolon to end statement")
+    return ctx.CurrentErrorHandler().Add(nxt, "expected semicolon to end statement")
   }
 
   // parse prompt
-  exp = parseExpression(it.Next(), it, nil)
+  exp = parseExpression(it.Next(), ctx, nil)
   if pmtExp, ok := exp.(*ast.StringLiteral); ok {
     sc := it.Next()
     if sc == nil || sc.Type != ";" {
-      return it.EHandler.Add(sc, "expected semicolon to end statement")
+      return ctx.CurrentErrorHandler().Add(sc, "expected semicolon to end statement")
     }
     return &ast.ReadStatement{
       Identifier: idExp,
       Prompt:     pmtExp,
     }
   }
-  return it.EHandler.Add(it.Current(), "expected prompt after ','")
+  return ctx.CurrentErrorHandler().Add(it.Current(), "expected prompt after ','")
 }
 
-func parseIfStatement(tkn *token.Token, it *lexer.TokenIterator) ast.Statement {
-  exp := parseExpression(it.Next(), it, nil)
+func parseIfStatement(tkn *token.Token, ctx *ParseContext) ast.Statement {
+  it := ctx.CurrentIterator()
+  exp := parseExpression(it.Next(), ctx, nil)
 
-  stmt := parseStatement(it.Next(), it)
+  stmt := parseStatement(it.Next(), ctx)
   return &ast.IfStatement{
     Condition: exp,
     Statement: stmt,
   }
 }
 
-func parseWhileLoop(tkn *token.Token, it *lexer.TokenIterator) ast.Statement {
-  exp := parseExpression(it.Next(), it, nil)
+func parseWhileLoop(tkn *token.Token, ctx *ParseContext) ast.Statement {
+  it := ctx.CurrentIterator()
+  exp := parseExpression(it.Next(), ctx, nil)
 
-  stmt := parseStatement(it.Next(), it)
+  stmt := parseStatement(it.Next(), ctx)
   return &ast.WhileLoopStatement{
     Condition: exp,
     Statement: stmt,
   }
 }
 
-func parseReturnStatement(tkn *token.Token, it *lexer.TokenIterator) ast.Statement {
-  exp := parseExpression(it.Next(), it, nil)
+func parseReturnStatement(tkn *token.Token, ctx *ParseContext) ast.Statement {
+  it := ctx.CurrentIterator()
+  exp := parseExpression(it.Next(), ctx, nil)
   // expect a semicolon
   if nxt := it.Peek(); nxt.Type != ";" {
-    return it.EHandler.Add(it.Current(), "expected semicolon to end return statement")
+    return ctx.CurrentErrorHandler().Add(it.Current(), "expected semicolon to end return statement")
   }
   it.Next()
   return &ast.ReturnStatement{Value: exp}
 }
 
-func parseImportStatement(tkn *token.Token, it *lexer.TokenIterator) ast.Statement {
+func parseImportStatement(tkn *token.Token, ctx *ParseContext) ast.Statement {
+  it := ctx.CurrentIterator()
+  handler := ctx.CurrentErrorHandler()
   ids := make([]*ast.Identifier, 0)
   nxt := it.Next()
-  exp := parseExpression(nxt, it, nil)
+  exp := parseExpression(nxt, ctx, nil)
   if id, ok := exp.(*ast.Identifier); !ok {
     it.SkipStatement()
-    return it.EHandler.Add(nxt, "expected identifier.")
+    return handler.Add(nxt, "expected identifier.")
   } else {
     ids = append(ids, id)
   }
   for nxt = it.Next(); nxt.Type == ","; nxt = it.Next() {
-    idExp := parseExpression(it.Next(), it, nil)
+    idExp := parseExpression(it.Next(), ctx, nil)
     if id, ok := idExp.(*ast.Identifier); !ok {
       it.SkipStatement()
-      return it.EHandler.Add(nxt, "expected identifier.")
+      return handler.Add(nxt, "expected identifier.")
     } else {
       ids = append(ids, id)
     }
@@ -150,35 +155,34 @@ func parseImportStatement(tkn *token.Token, it *lexer.TokenIterator) ast.Stateme
   // expect FROM
   if nxt.Value != ast.FROM {
     it.SkipStatement()
-    return it.EHandler.Add(nxt, "expected 'from'")
+    return handler.Add(nxt, "expected 'from'")
   }
   // expect string literal
   if nxt = it.Next(); nxt.Type != "string" {
     it.SkipStatement()
-    return it.EHandler.Add(nxt, "expected path to file")
+    return handler.Add(nxt, "expected path to file")
   }
   source := nxt.Value
   // expect semicolon
   if p := it.Peek(); p.Type != ";" {
-    return it.EHandler.Add(nxt, "expected ';' to end import statement")
+    return handler.Add(nxt, "expected ';' to end import statement")
   }
   it.Next()
 
-  // start parsing the referenced file
-  refIt, err := it.CreateIteratorForImport(source)
-  if _, ok := err.(util.AlreadyParsedError); !ok && err != nil {
-    return it.EHandler.Add(nxt, "error finding referenced file")
+  // PushImport updates the context to start parsing the referenced file
+  err := ctx.PushImport(source)
+  if _, ok := err.(*util.AlreadyParsedError); !ok && err != nil {
+    return handler.Add(nxt, "error finding referenced file")
+  } else if ok {
+    return &ast.ImportStatement{
+      Source: source,
+      Imports: ids,
+    }
   }
-  // iterator created, add a mapping to the import graph
-  dest := path.Clean(path.Join(path.Dir(it.SourcePath), source))
-  node := it.IGraph.Add(it.SourcePath, dest)
 
-  // parse referenced file and consume errors
-  refTree := Parse(refIt)
-  for _, e := range refIt.EHandler.Errors {
-    it.EHandler.Errors = append(it.EHandler.Errors, e)
-  }
-  node.SetAst(refTree)
+  // run Parse and then return ctx to previous state
+  refTree := Parse(ctx)
+  ctx.PopImportWithTree(refTree)
 
   // return the import statement node
   return &ast.ImportStatement{
@@ -187,19 +191,20 @@ func parseImportStatement(tkn *token.Token, it *lexer.TokenIterator) ast.Stateme
   }
 }
 
-func parseExportStatement(tkn *token.Token, it *lexer.TokenIterator) ast.Statement {
+func parseExportStatement(tkn *token.Token, ctx *ParseContext) ast.Statement {
+  it := ctx.CurrentIterator()
   // parse the exported expression
-  exp := parseExpression(it.Next(), it, nil)
+  exp := parseExpression(it.Next(), ctx, nil)
 
   curr := it.Current()
   var nxt *token.Token
   if nxt = it.Next(); nxt.Value == ast.AS {
     // expect an identifier
-    idExp := parseExpression(it.Next(), it, nil)
+    idExp := parseExpression(it.Next(), ctx, nil)
     if id, ok := idExp.(*ast.Identifier); !ok {
       e := it.Current()
       it.SkipStatement()
-      return it.EHandler.Add(e, "expected identifier")
+      return ctx.CurrentErrorHandler().Add(e, "expected identifier")
     } else {
       return &ast.ExportStatement{
         Identifier: id,
@@ -209,8 +214,10 @@ func parseExportStatement(tkn *token.Token, it *lexer.TokenIterator) ast.Stateme
   }
 
   // expect semicolon
-  if nxt.Type != ";" {
-    return it.EHandler.Add(curr, "expected ';' to end export statement")
+  if _, ok := exp.(*ast.FunctionLiteral); !ok && nxt.Type != ";" {
+    return ctx.CurrentErrorHandler().Add(curr, "expected ';' to end export statement")
+  } else if nxt.Type != ";" {
+    it.Prev()
   }
 
   // if AS is not used, the identifier should exist in the value
@@ -229,7 +236,7 @@ func parseExportStatement(tkn *token.Token, it *lexer.TokenIterator) ast.Stateme
       Name: i.Name,
     }
   } else {
-    return it.EHandler.Add(nxt, "expected variable, function, or identifier")
+    return ctx.CurrentErrorHandler().Add(nxt, "expected variable, function, or identifier")
   }
 
   // build the export statement

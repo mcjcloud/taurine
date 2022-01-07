@@ -189,6 +189,8 @@ func executeImportStatement(stmt *ast.ImportStatement, scope *Scope, tree *ast.A
     }
     n.Ast.Evaluated = true
     node = n
+  } else {
+    node = n
   }
 
   // imported values should now exist in the Ast exports

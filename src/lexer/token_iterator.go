@@ -2,54 +2,22 @@ package lexer
 
 import (
 	"fmt"
-	"io/ioutil"
-	"path"
 
 	"github.com/mcjcloud/taurine/token"
-	"github.com/mcjcloud/taurine/util"
 )
 
 // TokenIterator is a structure which allows you to iterate through tokens
 type TokenIterator struct {
 	Index      int
 	Tokens     []*token.Token
-  EHandler   *util.ErrorHandler
-  IGraph     *util.ImportGraph
-  SourcePath string
 }
 
 // NewTokenIterator creates a new TokenIterator struct
-func NewTokenIterator(tkns []*token.Token, sourcePath string, ig *util.ImportGraph) *TokenIterator {
+func NewTokenIterator(tkns []*token.Token) *TokenIterator {
 	return &TokenIterator{
 		Index:      -1,
 		Tokens:     tkns,
-    SourcePath: sourcePath,
-    EHandler:   util.NewErrorHandler(),
-    IGraph:     ig,
 	}
-}
-
-func (it *TokenIterator) CreateIteratorForImport(relativePath string) (*TokenIterator, error) {
-  absPath := path.Clean(path.Join(path.Dir(it.SourcePath), relativePath))
-
-  // check that the import graph doesn't already contain a parsed AST for this path
-  if _, ok := it.IGraph.Nodes[absPath]; ok {
-    return nil, &util.AlreadyParsedError{
-      Path: absPath,
-    }
-  }
-
-  // read source code for 
-  bytes, err := ioutil.ReadFile(absPath)
-  if err != nil {
-    return nil, fmt.Errorf("error reading referenced source: %s", err.Error())
-  }
-  src := string(bytes)
-
-  // tokenize
-  tkns := Analyze(src)
-
-  return NewTokenIterator(tkns, absPath, it.IGraph), nil
 }
 
 // Peek returns the next token without advancing
@@ -141,44 +109,13 @@ func (it *TokenIterator) GetRow(n int) []*token.Token {
   return row
 }
 
-func PrintTokens(tkns []*token.Token) {
-	for i, tkn := range tkns {
+func (it TokenIterator) PrintTokens() {
+	for i, tkn := range it.Tokens {
     var val string
     if tkn.Type != tkn.Value {
       val = tkn.Value
     }
     fmt.Printf("%02d:%02d %04d %s %s\n", tkn.Position.Row, tkn.Position.Col, i, tkn.Type, val)
 	}
-}
-
-func (it *TokenIterator) PrintErrors() {
-  for _, e := range it.EHandler.Errors {
-    // print error message
-    fmt.Printf("error at %d:%d: %s\n", e.Token.Position.Row, e.Token.Position.Col, e.Message)
-
-    // print each token in the row with the error
-    row := it.GetRow(e.Token.Position.Row)
-    colStart := 1
-    for _, t := range row {
-      // print spaces leading up to the beginning of each token
-      for i := colStart; i < t.Position.Col; i += 1 {
-        fmt.Printf(" ")
-      }
-      // update colStart and print the token
-      colStart = t.Position.Col+t.Position.Length
-      if t.Type == "string" {
-        fmt.Printf("\"%s\"", t.Value)
-      } else {
-        fmt.Printf(t.Value)
-      }
-    }
-    fmt.Println()
-
-    // print underlines up until the error token
-    for i := 0; i < e.Token.Position.Col+e.Token.Position.Length-1; i += 1 {
-      fmt.Printf("~")
-    }
-    fmt.Println("^")
-  }
 }
 

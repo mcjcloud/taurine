@@ -10,7 +10,6 @@ import (
 
 	"github.com/mcjcloud/taurine/ast"
 	"github.com/mcjcloud/taurine/evaluator"
-	"github.com/mcjcloud/taurine/lexer"
 	"github.com/mcjcloud/taurine/parser"
 	"github.com/mcjcloud/taurine/util"
 
@@ -64,20 +63,16 @@ func testDirectory(path string) error {
   }
   expectedOutput := string(bytes)
 
-  // read the source code
-  bytes, err = ioutil.ReadFile(filepath.Join(path, "src.tc"))
+  // build the AST from source
+  absPath, err := filepath.Abs(filepath.Join(path, "src.tc"))
+  ctx, err := parser.NewParseContext(absPath)
   if err != nil {
     return err
   }
-  src := string(bytes)
-
-  // build the AST from source
-  absPath, err := filepath.Abs(filepath.Join(path, "src.tc"))
-  tkns := lexer.Analyze(src)
-  it := lexer.NewTokenIterator(tkns, absPath, util.NewImportGraph())
-  tree := parser.Parse(it)
-  if len(it.EHandler.Errors) > 0 {
-    it.PrintErrors()
+  tree := parser.Parse(ctx)
+  // print any errors during parsing
+  if ctx.HasErrors() {
+    ctx.PrintErrors()
     os.Exit(1)
   }
 
@@ -91,7 +86,7 @@ func testDirectory(path string) error {
 
   // evaluate test code
   fmt.Printf("testing output... ")
-  if err := evaluateTestCode(path, tree, it.IGraph); err != nil {
+  if err := evaluateTestCode(path, tree, ctx.ImportGraph); err != nil {
     return err
   }
 
