@@ -214,8 +214,10 @@ func parseExportStatement(tkn *token.Token, ctx *ParseContext) ast.Statement {
   }
 
   // expect semicolon
-  if nxt.Type != ";" {
+  if _, ok := exp.(*ast.FunctionLiteral); !ok && nxt.Type != ";" {
     return ctx.CurrentErrorHandler().Add(curr, "expected ';' to end export statement")
+  } else if nxt.Type != ";" {
+    it.Prev()
   }
 
   // if AS is not used, the identifier should exist in the value
