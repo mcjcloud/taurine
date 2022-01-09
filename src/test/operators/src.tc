@@ -1,0 +1,37 @@
+var (num) a = 3 + 3;
+etch a; // 6
+// a += 3;
+//etch a; // 9
+
+var (num) b = 3 * 3;
+etch b; // 9
+// b *= 3;
+//etch b; // 27
+
+var (num) c = 3 / 3;
+etch c; // 1
+// c /= 3;
+//etch c; // 0.333333
+
+var (num) d = 3 - 3;
+etch d; // 0
+// d -= 3;
+//etch d; // -3
+
+// var (num) e = 3 % 3;
+// etch e; // 0
+// e %= 3;
+// etch e; // 3
+
+var (arr) f = [1, 2, 3];
+etch f@2; // 3
+
+var (arr) g = 0..10;
+etch f@2; // 3
+
+var (arr) h = 0..b;
+etch len(h); // 9
+
+var (arr) i = (h@8)..19;
+etch i;
+

@@ -111,7 +111,20 @@ func (i *IfStatement) String() string {
   return fmt.Sprintf("if %s %s else %s", i.Condition, i.Statement, i.ElseIf)
 }
 
-// WhileLoopStatement represents a for loop
+// ForLoopStatement represents for loop
+type ForLoopStatement struct {
+  Control   *Identifier `json:"control"`
+  Iterator  Expression  `json:"iterator"`
+  Step      int         `json:"step"`
+  Statement Statement   `json:"statement"`
+}
+
+func (f *ForLoopStatement) do() {}
+func (f *ForLoopStatement) String() string {
+  return fmt.Sprintf("for %s in %s %s", f.Control, f.Iterator, f.Statement)
+}
+
+// WhileLoopStatement represents a while loop
 type WhileLoopStatement struct {
   Condition Expression `json:"condition"`
   Statement Statement  `json:"statement"`
@@ -186,6 +199,8 @@ const (
   AS = "as"
   // FROM represents from keyword
   FROM = "from"
+  // IN represents in keyword
+  IN = "in"
 )
 
 // Operator represents an operator
@@ -204,6 +219,8 @@ const (
   AT = "@"
   // DOT represents .
   DOT = "."
+  // RANGE represents ..
+  RANGE = ".."
 )
 
 var PRECEDENCE = map[Operator]int{
@@ -212,7 +229,8 @@ var PRECEDENCE = map[Operator]int{
   MULTIPLY: 2,
   DIVIDE:   2,
   AT:       3,
-  DOT:      4,
+  RANGE:    4,
+  DOT:      5,
 }
 
 // IsStatementPrefix returns true if the symbol is a statement prefix

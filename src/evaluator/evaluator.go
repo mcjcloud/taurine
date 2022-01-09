@@ -1,15 +1,15 @@
 package evaluator
 
 import (
-  "bufio"
-  "errors"
-  "fmt"
-  "os"
-  "path"
-  "strings"
+	"bufio"
+	"errors"
+	"fmt"
+	"os"
+	"path"
+	"strings"
 
-  "github.com/mcjcloud/taurine/ast"
-  "github.com/mcjcloud/taurine/util"
+	"github.com/mcjcloud/taurine/ast"
+	"github.com/mcjcloud/taurine/util"
 )
 
 // Evaluate evaluates the code and does stuff
@@ -87,6 +87,35 @@ func executeStatement(stmt ast.Statement, scope *Scope) error {
       return nil
     }
     return errors.New("if expression must evaluate to boolean")
+  } else if forStmt, ok := stmt.(*ast.ForLoopStatement); ok {
+    // evaluate the iterator
+    arrExp, err := evaluateExpression(forStmt.Iterator, scope)
+    if err != nil {
+      return err
+    }
+    var arr *ast.ArrayExpression
+    if a, ok := arrExp.(*ast.ArrayExpression); ok {
+      arr = a
+    } else if s, ok := arrExp.(*ast.StringLiteral); ok {
+      chars := make([]ast.Expression, len(s.Value))
+      for i, c := range s.Value {
+        chars[i] = &ast.StringLiteral{Value: string(c)}
+      }
+      arr = &ast.ArrayExpression{Expressions: chars}
+    } else {
+      return fmt.Errorf("expected array or string iterator but found %s", arrExp)
+    }
+
+    // loop through the array
+    for i := 0; i < len (arr.Expressions); i += forStmt.Step {
+      control, err := evaluateExpression(arr.Expressions[i], scope)
+      if err != nil {
+        return err
+      }
+      forScope := NewScopeWithParent(scope)
+      forScope.Set(forStmt.Control.Name, control)
+      executeStatement(forStmt.Statement, forScope)
+    }
   } else if whileStmt, ok := stmt.(*ast.WhileLoopStatement); ok {
     exp, err := evaluateExpression(whileStmt.Condition, scope)
     if err != nil {
@@ -296,26 +325,31 @@ func evaluateArrayExpression(arr *ast.ArrayExpression, scope *Scope) (ast.Expres
 }
 
 func evaluateFunctionCall(call *ast.FunctionCall, scope *Scope) (ast.Expression, error) {
-  fn, err := evaluateExpression(call.Function, scope)
-  if err != nil {
-    return nil, err
-  }
-  // expect that the expression evaluates to ScopedFunction
-  scopedFn, ok := fn.(*ScopedFunction)
-  if !ok {
-    return nil, errors.New("called expression did not evaluate to function")
-  }
   // TODO: make this cleaner, maybe move built-in functions someplace else
-  if scopedFn.Function.Symbol == "len" {
+  if id, ok := call.Function.(*ast.Identifier); ok && id.Name == "len" {
     if len(call.Arguments) != 1 {
       return nil, errors.New("len takes only one argument")
     }
     return builtInLen(call.Arguments[0], scope)
   }
+
+  // must be a non-built-in function
+  fn, err := evaluateExpression(call.Function, scope)
+  if err != nil {
+    return nil, err
+  }
+
+  // expect that the expression evaluates to ScopedFunction
+  scopedFn, ok := fn.(*ScopedFunction)
+  if !ok {
+    return nil, errors.New("called expression did not evaluate to function")
+  }
+
   // check that the number of parameters are correct
   if len(scopedFn.Function.Parameters) != len(call.Arguments) {
     return nil, fmt.Errorf("expected '%d' arguments but got '%d' for call to '%s'", len(scopedFn.Function.Parameters), len(call.Arguments), call.Function)
   }
+
   // evaluate arguments and populate scope
   for i, arg := range call.Arguments {
     exp, err := evaluateExpression(arg, scope)
