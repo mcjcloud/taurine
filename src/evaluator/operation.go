@@ -9,7 +9,7 @@ import (
 
 func evaluateOperation(op *ast.OperationExpression, scope *Scope) (ast.Expression, error) {
   // check . operator first because it doesn't involve evaluating the right side immediately
-  if op.Operator == "." {
+  if op.Operator == ast.DOT { // "."
     left, err := evaluateExpression(op.LeftExpression, scope)
     if err != nil {
       return nil, fmt.Errorf("error accessing obj member: %s", err.Error())
@@ -41,7 +41,7 @@ func evaluateOperation(op *ast.OperationExpression, scope *Scope) (ast.Expressio
   if err != nil {
     return nil, err
   }
-  if op.Operator == "+" {
+  if op.Operator == ast.PLUS { // "+"
     if leftNum, ok := left.(*ast.NumberLiteral); ok {
       if rightNum, ok := right.(*ast.NumberLiteral); ok {
         return &ast.NumberLiteral{Value: leftNum.Value + rightNum.Value}, nil
@@ -56,21 +56,21 @@ func evaluateOperation(op *ast.OperationExpression, scope *Scope) (ast.Expressio
       }
     }
     return nil, errors.New("'+' operator is not applicable to arguments")
-  } else if op.Operator == "-" {
+  } else if op.Operator == ast.MINUS { // "-"
     if leftNum, ok := left.(*ast.NumberLiteral); ok {
       if rightNum, ok := right.(*ast.NumberLiteral); ok {
         return &ast.NumberLiteral{Value: leftNum.Value - rightNum.Value}, nil
       }
     }
     return nil, errors.New("'-' operator only applies to type num")
-  } else if op.Operator == "/" {
+  } else if op.Operator == ast.DIVIDE { // "/"
     if leftNum, ok := left.(*ast.NumberLiteral); ok {
       if rightNum, ok := right.(*ast.NumberLiteral); ok {
         return &ast.NumberLiteral{Value: leftNum.Value / rightNum.Value}, nil
       }
     }
     return nil, errors.New("'/' operator only applies to type num")
-  } else if op.Operator == "*" {
+  } else if op.Operator == ast.MULTIPLY { // "*"
     if leftNum, ok := left.(*ast.NumberLiteral); ok {
       if rightNum, ok := right.(*ast.NumberLiteral); ok {
         return &ast.NumberLiteral{Value: leftNum.Value * rightNum.Value}, nil
@@ -178,8 +178,31 @@ func evaluateOperation(op *ast.OperationExpression, scope *Scope) (ast.Expressio
       }
     }
     return nil, errors.New("'@' operator must be in form arr@integer")
+  } else if op.Operator == ast.RANGE { // ".."
+    // make sure each left and right operator are integers
+    if leftNum, ok := left.(*ast.NumberLiteral); ok && leftNum.Value == float64(int(leftNum.Value)) {
+      if rightNum, ok := right.(*ast.NumberLiteral); ok && rightNum.Value == float64(int(rightNum.Value)) {
+        var direction int
+        if leftNum.Value < rightNum.Value {
+          direction = 1
+        } else if rightNum.Value > leftNum.Value {
+          direction = -1
+        } else {
+          return &ast.ArrayExpression{
+            Expressions: []ast.Expression{leftNum},
+          }, nil
+        }
+        // use direction to iterate and populate array
+        arr := make([]ast.Expression, 0)
+        for i := int(leftNum.Value); i != int(rightNum.Value); i += direction {
+          arr = append(arr, &ast.NumberLiteral{Value: float64(i)})
+        }
+        return &ast.ArrayExpression{Expressions: arr}, nil
+      }
+    }
+    return nil, errors.New("'..' must have operands of type integer")
   }
-  return nil, errors.New("unrecognized operator")
+  return nil, fmt.Errorf("unrecognized operator '%s'", op.Operator)
 }
 
 func builtInLen(exp ast.Expression, scope *Scope) (*ast.NumberLiteral, error) {
@@ -189,6 +212,8 @@ func builtInLen(exp ast.Expression, scope *Scope) (*ast.NumberLiteral, error) {
   }
   if strExp, ok := evExp.(*ast.StringLiteral); ok {
     return &ast.NumberLiteral{Value: float64(len(strExp.Value))}, nil
+  } else if arrExp, ok := evExp.(*ast.ArrayExpression); ok {
+    return &ast.NumberLiteral{Value: float64(len(arrExp.Expressions))}, nil
   }
   return nil, errors.New("len can only be called on type str or arr")
 }

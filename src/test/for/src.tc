@@ -1,0 +1,24 @@
+var (str) ints = "";
+for i in 0..10 {
+  ints = ints + i + " ";
+}
+etch ints;
+
+var (str) steppedInts = "";
+for i in 0..10; 2 {
+  steppedInts = steppedInts + i + " ";
+}
+etch steppedInts;
+
+var (str) spacedHello = "";
+for c in "hello" {
+  spacedHello = spacedHello + c + " ";
+}
+etch spacedHello;
+
+var (str) steppedHello = "";
+for c in "hello"; 2 {
+  steppedHello = steppedHello + c + " ";
+}
+etch steppedHello;
+

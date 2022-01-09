@@ -1,6 +1,8 @@
 package parser
 
 import (
+  "fmt"
+
 	"github.com/mcjcloud/taurine/ast"
 	"github.com/mcjcloud/taurine/token"
 	"github.com/mcjcloud/taurine/util"
@@ -28,6 +30,8 @@ func parseStatement(tkn *token.Token, ctx *ParseContext) ast.Statement {
       return parseReadStatement(tkn, ctx)
     } else if tkn.Value == ast.IF {
       return parseIfStatement(tkn, ctx)
+    } else if tkn.Value == ast.FOR {
+      return parseForLoop(tkn, ctx)
     } else if tkn.Value == ast.WHILE {
       return parseWhileLoop(tkn, ctx)
     } else if tkn.Value == ast.RETURN {
@@ -115,6 +119,53 @@ func parseIfStatement(tkn *token.Token, ctx *ParseContext) ast.Statement {
     Condition: exp,
     Statement: stmt,
     ElseIf:    elif,
+  }
+}
+
+func parseForLoop(tkn *token.Token, ctx *ParseContext) ast.Statement {
+  it := ctx.CurrentIterator()
+
+  // expect an identifier
+  idStart := it.Next()
+  idExp := parseExpression(idStart, ctx, nil)
+  var id *ast.Identifier
+  if v, ok := idExp.(*ast.Identifier); !ok {
+    it.SkipTo(token.Token{Type: "{", Value: "{"})
+    return ctx.CurrentErrorHandler().Add(idStart, fmt.Sprintf("expected identifier but found %s", idExp))
+  } else {
+    id = v
+  }
+
+  // expect 'in' 
+  if nxt := it.Next(); nxt.Value != ast.IN {
+    it.SkipTo(token.Token{Type: "{", Value: "{"})
+    return ctx.CurrentErrorHandler().Add(nxt, fmt.Sprintf("expected 'in' but found %s", nxt.Value))
+  }
+
+  // expect expression this should be an array at runtime
+  arrExp := parseExpression(it.Next(), ctx, nil)
+
+  // optionally expect a ';' and a number (the step)
+  step := 1
+  if peek := it.Peek(); peek.Type == ";" {
+    s := it.Next()
+    numExp := parseExpression(it.Next(), ctx, nil)
+    if num, ok := numExp.(*ast.NumberLiteral); ok && num.Value == float64(int(num.Value)) {
+      step = int(num.Value)
+    } else {
+      it.SkipTo(token.Token{Type: "{", Value: "{"})
+      return ctx.CurrentErrorHandler().Add(s, fmt.Sprintf("expected integer as step but found %s", numExp))
+    }
+  }
+
+  // read statement
+  stmt := parseStatement(it.Next(), ctx)
+
+  return &ast.ForLoopStatement{
+    Control: id,
+    Iterator: arrExp,
+    Step: step,
+    Statement: stmt,
   }
 }
 

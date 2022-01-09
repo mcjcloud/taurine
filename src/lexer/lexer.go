@@ -62,6 +62,8 @@ func Analyze(source string) (tkns []*token.Token) {
       if numberRe.Match([]byte{nxt}) {
         scanner.Unread()
         tkns = append(tkns, scanNumber(c, scanner))
+      } else {
+        tkns = append(tkns, token.NewToken("operation", string(c), *scanner))
       }
     } else if isSpecial(c) {
       tkns = append(tkns, token.NewToken(string(c), string(c), *scanner))
@@ -115,6 +117,8 @@ func scanOperation(c byte, scanner *token.Scanner) *token.Token {
 
   if b == '=' {
     val += string(b)
+  } else if b == '.' {
+    val += string(c)
   } else {
     scanner.Unread()
   }
@@ -129,8 +133,16 @@ func scanNumber(c byte, scanner *token.Scanner) *token.Token {
     val += "-"
     b = scanner.Next()
   }
+  var lastB byte
   for numberRe.Match([]byte{b}) {
+    // prevent range operator '..' from being interpreted as a number
+    if b == '.' && lastB == '.' {
+      scanner.UnreadByte()
+      scanner.UnreadByte()
+      return token.NewToken("number", val[:len(val)-1], *scanner)
+    }
     val += string(b)
+    lastB = b
     b = scanner.Next()
     if b == token.EOF {
       break
