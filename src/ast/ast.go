@@ -209,12 +209,36 @@ type Operator string
 const (
   // PLUS represents +
   PLUS Operator = "+"
+  // PLUS_EQUAL represents +=
+  PLUS_EQUAL = "+="
   // MINUS represents -
   MINUS = "-"
+  // MINUS_EQUAL represents -=
+  MINUS_EQUAL = "-="
   // MULTIPLY represents *
   MULTIPLY = "*"
+  // MULTIPLY_EQUAL represents *=
+  MULTIPLY_EQUAL = "*="
   // DIVIDE represents /
   DIVIDE = "/"
+  // DIVIDE_EQUAL represents /=
+  DIVIDE_EQUAL = "/="
+  // MODULO represents %
+  MODULO = "%"
+  // MODULO_EQUAL represents %=
+  MODULO_EQUAL = "%="
+  // EQUAL_EQUAL represents ==
+  EQUAL_EQUAL = "=="
+  // NOT_EQUAL represents !=
+  NOT_EQUAL = "!="
+  // LESS_THAN represents <
+  LESS_THAN = "<"
+  // LESS_EQUAL represents <=
+  LESS_EQUAL = "<="
+  // GREATER_THAN represents >
+  GREATER_THAN = ">"
+  // GREATER_EQUAL represents >=
+  GREATER_EQUAL = ">="
   // AT represents @
   AT = "@"
   // DOT represents .
