@@ -87,8 +87,19 @@ func dot(leftExp, rightExp ast.Expression, scope *Scope) (ast.Expression, error)
       // create a new scope with the parent obj as scope
       objScope := NewScopeOfObject(leftObj, scope)
       return evaluateOperation(rightDotOp, objScope)
+    } else if rightAsgn, ok := rightExp.(*ast.AssignmentExpression); ok {
+      // TODO: consider moving this logic. Perhaps the assignment should be moved
+      // further up the tree and this logic should be handled by the assignment fn
+      // evaluate the new value and update the object property
+      newVal, err := evaluateExpression(rightAsgn.Value, scope)
+      if err != nil {
+        return nil, err
+      }
+      leftObj.Value[rightAsgn.Identifier.Name] = newVal
+      return newVal, nil
     }
     return nil, errors.New("right side of '.' must be identifier or function call")
   }
   return nil, errors.New("'.' operator must be in form obj.identifier")
 }
+
