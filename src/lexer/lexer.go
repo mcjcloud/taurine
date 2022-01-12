@@ -62,6 +62,8 @@ func Analyze(source string) (tkns []*token.Token) {
       if numberRe.Match([]byte{nxt}) {
         scanner.Unread()
         tkns = append(tkns, scanNumber(c, scanner))
+      } else if nxt == '=' {
+        tkns = append(tkns, token.NewToken("operation", string(c) + string(nxt), *scanner))
       } else {
         tkns = append(tkns, token.NewToken("operation", string(c), *scanner))
       }

@@ -2,8 +2,18 @@ var (obj) x = {
   hello: "world",
   n: 4,
   mybool: true,
+  myObj: {
+    y: 2,
+  },
 };
-etch x.hello;
-etch x.n;
-etch x.mybool;
+etch x.hello; // world
+etch x.n; // 4.000000
+etch x.mybool; // true
+etch x.myObj.y; // 2.000000
+
+x.hello = "universe";
+etch x.hello; // universe
+
+x.myObj.y = 3;
+etch x.myObj.y; // 3.000000
 
