@@ -189,6 +189,8 @@ const (
   ARR = "arr"
   // OBJ represents the object type
   OBJ = "obj"
+  // VOID represents void type
+  VOID = "void"
   // FUNC represents the function keyword
   FUNC = "func"
   // IMPORT represents the import keyword

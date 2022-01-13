@@ -1,0 +1,13 @@
+var (arr) myarr = [1, 2, 3];
+var (arr) timesTwo = myarr.map(func (num) (num e) {
+  return e * 2;
+});
+etch myarr; // [1, 2, 3]
+etch timesTwo; // [2, 4, 6]
+
+func (num) plusIndex(num e, num i) {
+  return e + i;
+}
+etch myarr.map(plusIndex); // [2, 3, 5]
+etch myarr.length; // 3
+
