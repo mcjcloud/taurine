@@ -10,4 +10,10 @@ func (num) plusIndex(num e, num i) {
 }
 etch myarr.map(plusIndex); // [2, 3, 5]
 etch myarr.length; // 3
+etch "[", myarr.join(", "), "]";
+
+myarr.push(4);
+etch myarr; // [1, 2, 3, 4]
+etch myarr.pop(); // 4
+etch myarr; // [1, 2, 3]
 

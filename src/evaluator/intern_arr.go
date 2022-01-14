@@ -25,6 +25,12 @@ func evaluateInternArr(arr *ast.ArrayExpression, prop ast.Expression, scope *Sco
         return arrMap(arr, fn.Arguments, scope)
       case "forEach":
         return nil, arrForEach(arr, fn.Arguments, scope)
+      case "join":
+        return arrJoin(arr, fn.Arguments, scope)
+      case "push":
+        return nil, arrPush(arr, fn.Arguments, scope)
+      case "pop":
+        return arrPop(arr)
       default:
         return nil, fmt.Errorf("error resolving function '%s'", id.Name)
       }
@@ -140,8 +146,45 @@ func arrMap(arr *ast.ArrayExpression, args []ast.Expression, scope *Scope) (*ast
   return nil, fmt.Errorf("expected function argument to map")
 }
 
+// call a function for each element in an array
 func arrForEach(arr *ast.ArrayExpression, args []ast.Expression, scope *Scope) error {
   _, err := arrMap(arr, args, scope)
   return err
+}
+
+// join elements of an array into a string by the given string argument
+func arrJoin(arr *ast.ArrayExpression, args []ast.Expression, scope *Scope) (*ast.StringLiteral, error) {
+  if len(args) < 1 {
+    return nil, fmt.Errorf("expected 1 argument to join")
+  }
+
+  arg, err := evaluateExpression(args[0], scope)
+  if err != nil {
+    return nil, err
+  }
+
+  if str, ok := arg.(*ast.StringLiteral); ok {
+    var result string
+    for i, exp := range arr.Expressions {
+      result += exp.String()
+      if i < len(arr.Expressions)-1 {
+        result += str.Value
+      }
+    }
+    return &ast.StringLiteral{Value: result}, nil
+  }
+  return nil, fmt.Errorf("expected string for argument to join but found %s", arg)
+}
+
+// push an element to the end of an array
+func arrPush(arr *ast.ArrayExpression, args []ast.Expression, scope *Scope) error {
+  arr.Expressions = append(arr.Expressions, args...)
+  return nil
+}
+
+// pop the last element from an array and return it
+func arrPop(arr *ast.ArrayExpression) (ast.Expression, error) {
+  arr.Expressions = arr.Expressions[:len(arr.Expressions)-1]
+  return arr.Expressions[len(arr.Expressions)-1], nil
 }
 
