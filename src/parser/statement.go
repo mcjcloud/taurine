@@ -68,7 +68,7 @@ func parseEtchStatement(tkn *token.Token, ctx *ParseContext) ast.Statement {
     exps = append(exps, exp)
     nxt = it.Next()
   }
-  if nxt.Type != ";" {
+  if nxt == nil || nxt.Type != ";" {
     return ctx.CurrentErrorHandler().Add(nxt, "expected semicolon to end statement")
   }
   return &ast.EtchStatement{Expressions: exps}

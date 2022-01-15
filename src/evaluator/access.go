@@ -99,7 +99,8 @@ func dot(leftExp, rightExp ast.Expression, scope *Scope) (ast.Expression, error)
       return newVal, nil
     }
     return nil, errors.New("right side of '.' must be identifier or function call")
+  } else {
+    return evaluateIntern(left, rightExp, scope)
   }
-  return nil, errors.New("'.' operator must be in form obj.identifier")
 }
 
