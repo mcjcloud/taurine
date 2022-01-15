@@ -1,9 +1,10 @@
 package parser
 
 import (
-  "fmt"
-  "path"
-  "io/ioutil"
+	"fmt"
+	"io/ioutil"
+	"os"
+	"path"
 
 	"github.com/mcjcloud/taurine/ast"
 	"github.com/mcjcloud/taurine/lexer"
@@ -75,6 +76,15 @@ func (ctx *ParseContext) PushImport(relativePath string) error {
     return &util.AlreadyParsedError{
       Path: absPath,
     }
+  }
+
+  // if the path is a directory, append the directory as the file name
+  absStat, err := os.Stat(absPath)
+  if err != nil {
+    return err
+  }
+  if absStat.IsDir() {
+    absPath = path.Join(absPath, path.Base(absPath)) + ".tc"
   }
 
   // read source code for  absPath and tokenize

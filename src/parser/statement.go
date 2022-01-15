@@ -258,7 +258,7 @@ func parseExportStatement(tkn *token.Token, ctx *ParseContext) ast.Statement {
 
   curr := it.Current()
   var nxt *token.Token
-  if nxt = it.Next(); nxt.Value == ast.AS {
+  if nxt = it.Next(); nxt != nil && nxt.Value == ast.AS {
     // expect an identifier
     idExp := parseExpression(it.Next(), ctx, nil)
     if id, ok := idExp.(*ast.Identifier); !ok {
@@ -274,9 +274,9 @@ func parseExportStatement(tkn *token.Token, ctx *ParseContext) ast.Statement {
   }
 
   // expect semicolon
-  if _, ok := exp.(*ast.FunctionLiteral); !ok && nxt.Type != ";" {
+  if _, ok := exp.(*ast.FunctionLiteral); !ok && nxt != nil && nxt.Type != ";" {
     return ctx.CurrentErrorHandler().Add(curr, "expected ';' to end export statement")
-  } else if nxt.Type != ";" {
+  } else if nxt != nil && nxt.Type != ";" {
     it.Prev()
   }
 

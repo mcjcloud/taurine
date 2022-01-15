@@ -266,7 +266,7 @@ func (str Symbol) IsStatementPrefix() bool {
 
 // IsDataType returns true if the symbol represents a data type
 func (str Symbol) IsDataType() bool {
-  return str == NUM || str == STR || str == BOOL || str == ARR || str == OBJ || str == FUNC
+  return str == NUM || str == STR || str == BOOL || str == ARR || str == OBJ || str == FUNC || str == VOID
 }
 
 // ErrorNode represents an exoression that couldn't be parsed
