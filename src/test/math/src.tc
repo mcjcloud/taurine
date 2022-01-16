@@ -1,0 +1,7 @@
+import abs, max, min, floor, ceil, PI from "math";
+
+etch abs(-3);   // 3.000000
+etch max(2, 3); // 3.000000
+etch min(2, 3); // 2.000000
+etch floor(PI); // 3.000000
+etch ceil(PI);  // 4.000000

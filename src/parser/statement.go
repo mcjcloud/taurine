@@ -232,7 +232,7 @@ func parseImportStatement(tkn *token.Token, ctx *ParseContext) ast.Statement {
   // PushImport updates the context to start parsing the referenced file
   err := ctx.PushImport(source)
   if _, ok := err.(*util.AlreadyParsedError); !ok && err != nil {
-    return handler.Add(nxt, "error finding referenced file")
+    return handler.Add(nxt, fmt.Sprintf("error finding referenced file: %s", err.Error()))
   } else if ok {
     return &ast.ImportStatement{
       Source: source,

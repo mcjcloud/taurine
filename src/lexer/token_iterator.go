@@ -26,11 +26,14 @@ func (it *TokenIterator) Peek() *token.Token {
 		return nil
 	}
 	// find the next non-newline token
-	nxt := it.Tokens[it.Index+1]
-	for i := 2; nxt.Type == "newline" && it.Index+i < len(it.Tokens); i++ {
-		nxt = it.Tokens[it.Index+i]
+  var i int
+	for i = 1; it.Index+i < len(it.Tokens) && it.Tokens[it.Index+i].Type == "newline"; i++ {
+    continue
 	}
-	return nxt
+  if it.Index+i < len(it.Tokens) {
+    return it.Tokens[it.Index+i]
+  }
+	return nil
 }
 
 // Next advances the iterator by one, returning nil and resetting if the end has been reached
@@ -40,7 +43,6 @@ func (it *TokenIterator) Next() *token.Token {
 		it.Index++
 	}
 	if it.Index >= len(it.Tokens) {
-		it.Index = 0
 		return nil
 	}
 	return it.Tokens[it.Index]
@@ -53,7 +55,6 @@ func (it *TokenIterator) Prev() *token.Token {
 		it.Index--
 	}
 	if it.Index < 0 {
-		it.Index = 0
 		return nil
 	}
 	return it.Tokens[it.Index]

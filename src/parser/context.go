@@ -4,7 +4,8 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
-	"path"
+  "path"
+	"path/filepath"
 
 	"github.com/mcjcloud/taurine/ast"
 	"github.com/mcjcloud/taurine/lexer"
@@ -54,6 +55,11 @@ func (ctx *ParseContext) CurrentFilePath() string {
   return ctx.ParseStack.Top()
 }
 
+// CurrentFileDir returns the directory the current file is in
+func (ctx *ParseContext) CurrentFileDir() string {
+  return filepath.Dir(ctx.CurrentFilePath())
+}
+
 // CurrentIterator returns the iterator for the current file 
 func (ctx *ParseContext) CurrentIterator() *lexer.TokenIterator {
   return ctx.Iterators[ctx.ParseStack.Top()]
@@ -61,13 +67,13 @@ func (ctx *ParseContext) CurrentIterator() *lexer.TokenIterator {
 
 // CurrentErrorHandler returns the error handler for the current file
 func (ctx *ParseContext) CurrentErrorHandler() *util.ErrorHandler {
-  return ctx.ErrorHandlers[ctx.ParseStack.Top()]
+  return ctx.ErrorHandlers[ctx.CurrentFilePath()]
 }
 
 // PushImport creates an iterator for an import in the currently iterated file
 func (ctx *ParseContext) PushImport(relativePath string) error {
   // use the current path to get the absoulte path of the one being referenced
-  absPath := path.Clean(path.Join(path.Dir(ctx.ParseStack.Top()), relativePath))
+  absPath := util.ResolveImport(ctx.CurrentFileDir(), relativePath)
 
   // check that the import graph doesn't already contain a parsed AST for this path
   if _, ok := ctx.ImportGraph.Nodes[absPath]; ok {

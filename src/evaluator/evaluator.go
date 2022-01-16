@@ -5,7 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"os"
-	"path"
+  "path/filepath"
 	"strings"
 
 	"github.com/mcjcloud/taurine/ast"
@@ -210,17 +210,7 @@ func executeVariableDecleration(stmt *ast.VariableDecleration, scope *Scope) err
 }
 
 func executeImportStatement(stmt *ast.ImportStatement, scope *Scope, tree *ast.Ast, g *util.ImportGraph) error {
-  absPath := path.Clean(path.Join(path.Dir(tree.FilePath), stmt.Source))
-
-  // if the path is a directory, append the directory as the file name
-  absStat, err := os.Stat(absPath)
-  if err != nil {
-    return err
-  }
-  if absStat.IsDir() {
-    absPath = path.Join(absPath, path.Base(absPath)) + ".tc"
-  }
-
+  absPath := util.ResolveImport(filepath.Dir(tree.FilePath), stmt.Source)
   // check that the referenced ast has been evaluated 
   var node *util.ImportNode
   if n, ok := g.Nodes[absPath]; !ok {
@@ -341,6 +331,8 @@ func evaluateFunctionCall(call *ast.FunctionCall, scope *Scope) (ast.Expression,
       return nil, errors.New("len takes only one argument")
     }
     return builtInLen(call.Arguments[0], scope)
+  } else if ok && id.Name == "int" {
+    return builtInInt(call.Arguments[0], scope)
   }
 
   // must be a non-built-in function

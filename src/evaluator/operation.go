@@ -85,3 +85,13 @@ func builtInLen(exp ast.Expression, scope *Scope) (*ast.NumberLiteral, error) {
 	}
 	return nil, errors.New("len can only be called on type str or arr")
 }
+
+func builtInInt(exp ast.Expression, scope *Scope) (*ast.NumberLiteral, error) {
+  if expEv, err := evaluateExpression(exp, scope); err == nil {
+    if num, ok := expEv.(*ast.NumberLiteral); ok {
+      return &ast.NumberLiteral{Value: float64(int(num.Value))}, nil
+    }
+  }
+  return nil, errors.New("int() can only be called on type num")
+}
+

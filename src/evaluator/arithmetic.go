@@ -148,7 +148,7 @@ func modulo(leftExp, rightExp ast.Expression, scope *Scope) (ast.Expression, err
 			return &ast.NumberLiteral{Value: float64(int(leftNum.Value) % int(rightNum.Value))}, nil
 		}
 	}
-	return nil, errors.New("'%' operator only applies to type num")
+	return nil, errors.New("'%' operator only applies to integers")
 }
 
 func moduloAndAssign(leftExp, rightExp ast.Expression, scope *Scope) (ast.Expression, error) {
