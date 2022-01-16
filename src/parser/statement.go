@@ -150,8 +150,8 @@ func parseForLoop(tkn *token.Token, ctx *ParseContext) ast.Statement {
   if peek := it.Peek(); peek.Type == ";" {
     s := it.Next()
     numExp := parseExpression(it.Next(), ctx, nil)
-    if num, ok := numExp.(*ast.NumberLiteral); ok && num.Value == float64(int(num.Value)) {
-      step = int(num.Value)
+    if num, ok := numExp.(*ast.IntegerLiteral); ok {
+      step = int(num.Value.Int64())
     } else {
       it.SkipTo(token.Token{Type: "{", Value: "{"})
       return ctx.CurrentErrorHandler().Add(s, fmt.Sprintf("expected integer as step but found %s", numExp))

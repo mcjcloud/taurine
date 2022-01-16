@@ -3,6 +3,7 @@ package ast
 import (
   "encoding/json"
 	"fmt"
+  "math/big"
 
 	"github.com/mcjcloud/taurine/token"
 )
@@ -181,6 +182,8 @@ const (
   RETURN = "return"
   // NUM represents a number type
   NUM = "num"
+  // INT represents an integer type
+  INT = "int"
   // STR represents a string type
   STR = "str"
   // BOOL represents a boolean type
@@ -266,7 +269,7 @@ func (str Symbol) IsStatementPrefix() bool {
 
 // IsDataType returns true if the symbol represents a data type
 func (str Symbol) IsDataType() bool {
-  return str == NUM || str == STR || str == BOOL || str == ARR || str == OBJ || str == FUNC || str == VOID
+  return str == NUM || str == INT || str == STR || str == BOOL || str == ARR || str == OBJ || str == FUNC || str == VOID
 }
 
 // ErrorNode represents an exoression that couldn't be parsed
@@ -287,6 +290,16 @@ type NumberLiteral struct {
 func (n *NumberLiteral) Evaluate() {}
 func (n *NumberLiteral) String() string {
   return fmt.Sprintf("%f", n.Value)
+}
+
+// IntegerLiteral represents the int data type
+type IntegerLiteral struct {
+  Value *big.Int
+}
+
+func (i *IntegerLiteral) Evaluate() {}
+func (i *IntegerLiteral) String() string {
+  return i.Value.String()
 }
 
 // StringLiteral represents the str data type

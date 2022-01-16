@@ -1,6 +1,13 @@
 var (num) x = 4;
 var (num) y = 3;
-var (arr) a = [1, 2, 3];
+var (arr) a = [1.0, 2.0, 3.0];
 
 etch a@0 + x * (a@1 / a@2); // 3.666667
 
+// very large numbers
+var (int) addr = 2147483647999;
+etch addr - 10; // 2147483647989
+etch addr / 10; // 214748364799 ;214748364799.9 truncated
+etch addr * 10; // 2147483647990
+etch addr + 10; // 2147483648009
+etch addr % 10; // 9

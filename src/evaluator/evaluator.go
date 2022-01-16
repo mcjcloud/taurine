@@ -353,18 +353,60 @@ func evaluateFunctionCall(call *ast.FunctionCall, scope *Scope) (ast.Expression,
   }
 
   // evaluate arguments and populate scope
-  for i, arg := range call.Arguments {
-    exp, err := evaluateExpression(arg, scope)
+  for i, argExp := range call.Arguments {
+    exp, err := evaluateExpression(argExp, scope)
     if err != nil {
       return nil, err
     }
-    // TODO: create a good way to compare data type of argument of parameter
-    scopedFn.Scope.Set(scopedFn.Function.Parameters[i].Symbol, exp)
+
+    dType := ast.Symbol(scopedFn.Function.Parameters[i].SymbolType)
+    arg, err := conformDataType(dType, exp)
+    if err != nil {
+      return nil, err
+    }
+
+    scopedFn.Scope.Set(scopedFn.Function.Parameters[i].Symbol, arg)
   }
   // execute statements
   if err := executeStatement(scopedFn.Function.Body, scopedFn.Scope); err != nil {
     return nil, err
   }
   return scopedFn.Scope.ReturnValue, nil
+}
+
+func conformDataType(dType ast.Symbol, exp ast.Expression) (ast.Expression, error) {
+  switch dType {
+  case ast.NUM:
+    if _, nok := exp.(*ast.NumberLiteral); nok {
+      return exp, nil
+    }
+    if iExp, iok := exp.(*ast.IntegerLiteral); iok {
+      return &ast.NumberLiteral{Value: float64(iExp.Value.Int64())}, nil
+    }
+  case ast.INT:
+    if _, iok := exp.(*ast.IntegerLiteral); iok {
+      return exp, nil
+    }
+  case ast.STR:
+    if _, sok := exp.(*ast.StringLiteral); sok {
+      return exp, nil
+    }
+  case ast.BOOL:
+    if _, iok := exp.(*ast.BooleanLiteral); iok {
+      return exp, nil
+    }
+  case ast.ARR:
+    if _, iok := exp.(*ast.ArrayExpression); iok {
+      return exp, nil
+    }
+  case ast.FUNC:
+    if _, fok := exp.(*ast.FunctionLiteral); fok {
+      return exp, nil
+    }
+    if _, fok := exp.(*ScopedFunction); fok {
+      return exp, nil
+    }
+  }
+  return nil, fmt.Errorf("%s is not of type %s", exp, dType)
 }
 

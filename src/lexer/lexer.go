@@ -1,10 +1,11 @@
 package lexer
 
 import (
-  "fmt"
-  "regexp"
+	"fmt"
+	"regexp"
+	"strings"
 
-  "github.com/mcjcloud/taurine/token"
+	"github.com/mcjcloud/taurine/token"
 )
 
 var numberRe = regexp.MustCompile(`[.0-9]`)
@@ -141,7 +142,14 @@ func scanNumber(c byte, scanner *token.Scanner) *token.Token {
     if b == '.' && lastB == '.' {
       scanner.UnreadByte()
       scanner.UnreadByte()
-      return token.NewToken("number", val[:len(val)-1], *scanner)
+      val = val[:len(val)-1]
+      var valType string
+      if strings.Contains(val, ".") {
+        valType = "number"
+      } else {
+        valType = "integer"
+      }
+      return token.NewToken(valType, val, *scanner)
     }
     val += string(b)
     lastB = b
@@ -151,7 +159,14 @@ func scanNumber(c byte, scanner *token.Scanner) *token.Token {
     }
   }
   scanner.Unread()
-  return token.NewToken("number", val, *scanner)
+
+  var valType string
+  if strings.Contains(val, ".") {
+    valType = "number"
+  } else {
+    valType = "integer"
+  }
+  return token.NewToken(valType, val, *scanner)
 }
 
 func scan(c byte, scanner *token.Scanner, re *regexp.Regexp, t string) *token.Token {

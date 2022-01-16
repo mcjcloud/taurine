@@ -1,6 +1,6 @@
-var (num) i = 0;
+var (int) i = 0;
 while i < 10 {
   etch i;
-  i = i + 1;
+  i += 1;
 }
 

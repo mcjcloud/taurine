@@ -30,7 +30,7 @@ var (obj) nestedObj = {
 var (obj) fnReturnFn = {
   anon: func (obj) () {
     return {
-      f: func (num) (num x) {
+      f: func (int) (int x) {
         return x + 1;
       },
     };
@@ -38,10 +38,10 @@ var (obj) fnReturnFn = {
   s: "my string",
 };
 
-etch myFuncStatement(0);                // 1
-etch myFuncWithFunc(myStoredFunc, 1);   // 2
-etch myStoredFunc(2);                   // 3
-etch myObj.anon(3);                     // 4
-etch nestedObj.anon.f(4)(1);            // 5
+etch myFuncStatement(0);                // 1.000000
+etch myFuncWithFunc(myStoredFunc, 1);   // 2.000000
+etch myStoredFunc(2);                   // 3.000000
+etch myObj.anon(3);                     // 4.000000
+etch nestedObj.anon.f(4)(1);            // 5.000000
 etch fnReturnFn.anon().f(5);            // 6
 

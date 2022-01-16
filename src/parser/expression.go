@@ -1,12 +1,13 @@
 package parser
 
 import (
-  "fmt"
-  "strconv"
+	"fmt"
+	"math/big"
+	"strconv"
 
-  "github.com/jinzhu/copier"
-  "github.com/mcjcloud/taurine/ast"
-  "github.com/mcjcloud/taurine/token"
+	"github.com/jinzhu/copier"
+	"github.com/mcjcloud/taurine/ast"
+	"github.com/mcjcloud/taurine/token"
 )
 
 func parseExpression(tkn *token.Token, ctx *ParseContext, exp ast.Expression) ast.Expression {
@@ -15,6 +16,9 @@ func parseExpression(tkn *token.Token, ctx *ParseContext, exp ast.Expression) as
     if tkn.Type == "number" {
       val, _ := strconv.ParseFloat(tkn.Value, 64)
       return parseExpression(tkn, ctx, &ast.NumberLiteral{Value: val})
+    } else if tkn.Type == "integer" {
+      bigInt, _ := new(big.Int).SetString(tkn.Value, 10)
+      return parseExpression(tkn, ctx, &ast.IntegerLiteral{Value: bigInt})
     } else if tkn.Type == "string" {
       return parseExpression(tkn, ctx, &ast.StringLiteral{Value: tkn.Value})
     } else if tkn.Type == "bool" {
@@ -325,6 +329,12 @@ func parseAssignmentExpression(tkn *token.Token, dataType ast.Symbol, ctx *Parse
   exp := parseExpression(tkn, ctx, nil)
   if dataType == ast.NUM {
     if _, ok := exp.(*ast.NumberLiteral); ok {
+      return exp
+    } else if intLit, ok := exp.(*ast.IntegerLiteral); ok {
+      return &ast.NumberLiteral{Value: float64(intLit.Value.Int64())}
+    }
+  } else if dataType == ast.INT {
+    if _, ok := exp.(*ast.IntegerLiteral); ok {
       return exp
     }
   } else if dataType == ast.STR {
