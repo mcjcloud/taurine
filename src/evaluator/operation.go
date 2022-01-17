@@ -3,6 +3,7 @@ package evaluator
 import (
 	"errors"
 	"fmt"
+	"math/big"
 
 	"github.com/mcjcloud/taurine/ast"
 )
@@ -73,15 +74,15 @@ func evaluateOperation(op *ast.OperationExpression, scope *Scope) (ast.Expressio
   }
 }
 
-func builtInLen(exp ast.Expression, scope *Scope) (*ast.NumberLiteral, error) {
+func builtInLen(exp ast.Expression, scope *Scope) (*ast.IntegerLiteral, error) {
 	evExp, err := evaluateExpression(exp, scope)
 	if err != nil {
 		return nil, err
 	}
 	if strExp, ok := evExp.(*ast.StringLiteral); ok {
-		return &ast.NumberLiteral{Value: float64(len(strExp.Value))}, nil
+		return &ast.IntegerLiteral{Value: big.NewInt(int64(len(strExp.Value)))}, nil
 	} else if arrExp, ok := evExp.(*ast.ArrayExpression); ok {
-		return &ast.NumberLiteral{Value: float64(len(arrExp.Expressions))}, nil
+		return &ast.IntegerLiteral{Value: big.NewInt(int64(len(arrExp.Expressions)))}, nil
 	}
 	return nil, errors.New("len can only be called on type str or arr")
 }

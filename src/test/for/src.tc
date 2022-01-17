@@ -1,6 +1,6 @@
 var (str) ints = "";
 for i in 0..10 {
-  ints = ints + i + " ";
+  ints += i + " ";
 }
 etch ints;
 

@@ -3,6 +3,7 @@ package evaluator
 import (
   "errors"
   "fmt"
+  "math/big"
 
   "github.com/mcjcloud/taurine/ast"
 )
@@ -14,26 +15,20 @@ func arrayIndex(leftExp, rightExp ast.Expression, scope *Scope) (ast.Expression,
   }
 
   if leftArr, ok := left.(*ast.ArrayExpression); ok {
-    if rightNum, ok := right.(*ast.NumberLiteral); ok {
-      if i := int(rightNum.Value); float64(i) == rightNum.Value {
-        if i < 0 || i > len(leftArr.Expressions) {
-          return nil, fmt.Errorf("index %d out of range", i)
-        }
-        return evaluateExpression(leftArr.Expressions[i], scope)
-      } else {
-        return nil, errors.New("'@' index must evalute to an integer")
+    if rightNum, ok := right.(*ast.IntegerLiteral); ok {
+      i := int(rightNum.Value.Int64())
+      if i < 0 || i >= len(leftArr.Expressions) {
+        return nil, fmt.Errorf("index %d out of range", i)
       }
+      return evaluateExpression(leftArr.Expressions[i], scope)
     }
   } else if leftStr, ok := left.(*ast.StringLiteral); ok {
-    if rightNum, ok := right.(*ast.NumberLiteral); ok {
-      if i := int(rightNum.Value); float64(i) == rightNum.Value {
-        if i < 0 || i > len(leftStr.Value) {
-          return nil, fmt.Errorf("index %d out of range", i)
-        }
-        return &ast.StringLiteral{Value: string([]rune(leftStr.Value)[i])}, nil
-      } else {
-        return nil, errors.New("'@' index must evaluate to an integer")
+    if rightNum, ok := right.(*ast.IntegerLiteral); ok {
+      i := int(rightNum.Value.Int64())
+      if i < 0 || i >= len(leftStr.Value) {
+        return nil, fmt.Errorf("index %d out of range", i)
       }
+      return &ast.StringLiteral{Value: string([]rune(leftStr.Value)[i])}, nil
     }
   }
   return nil, errors.New("'@' operator must be in form arr@integer")
@@ -46,12 +41,12 @@ func createRange(leftExp, rightExp ast.Expression, scope *Scope) (ast.Expression
   }
 
   // make sure each left and right operator are integers
-  if leftNum, ok := left.(*ast.NumberLiteral); ok && leftNum.Value == float64(int(leftNum.Value)) {
-    if rightNum, ok := right.(*ast.NumberLiteral); ok && rightNum.Value == float64(int(rightNum.Value)) {
+  if leftNum, ok := left.(*ast.IntegerLiteral); ok {
+    if rightNum, ok := right.(*ast.IntegerLiteral); ok {
       var direction int
-      if leftNum.Value < rightNum.Value {
+      if leftNum.Value.Cmp(rightNum.Value) < 0 {
         direction = 1
-      } else if rightNum.Value > leftNum.Value {
+      } else if leftNum.Value.Cmp(rightNum.Value) > 0 {
         direction = -1
       } else {
         return &ast.ArrayExpression{
@@ -60,8 +55,8 @@ func createRange(leftExp, rightExp ast.Expression, scope *Scope) (ast.Expression
       }
       // use direction to iterate and populate array
       arr := make([]ast.Expression, 0)
-      for i := int(leftNum.Value); i != int(rightNum.Value); i += direction {
-        arr = append(arr, &ast.NumberLiteral{Value: float64(i)})
+      for i := int(leftNum.Value.Int64()); i != int(rightNum.Value.Int64()); i += direction {
+        arr = append(arr, &ast.IntegerLiteral{Value: big.NewInt(int64(i))})
       }
       return &ast.ArrayExpression{Expressions: arr}, nil
     }

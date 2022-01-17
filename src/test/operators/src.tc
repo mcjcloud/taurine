@@ -1,24 +1,24 @@
-var (num) a = 3 + 3;
+var (int) a = 3 + 3;
 etch a; // 6
 a += 3;
 etch a; // 9
 
-var (num) b = 3 * 3;
+var (int) b = 3 * 3;
 etch b; // 9
 b *= 3;
 etch b; // 27
 
-var (num) c = 3 / 3;
-etch c; // 1
+var (num) c = 3.0 / 3.0;
+etch c; // 1.000000
 c /= 3;
 etch c; // 0.333333
 
-var (num) d = 3 - 3;
+var (int) d = 3 - 3;
 etch d; // 0
 d -= 3;
 etch d; // -3
 
-var (num) e = 3 % 3;
+var (int) e = 3 % 3;
 etch e; // 0
 e %= 3;
 etch e; // 0

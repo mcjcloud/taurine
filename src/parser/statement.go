@@ -16,10 +16,11 @@ func parseStatement(tkn *token.Token, ctx *ParseContext) ast.Statement {
     for nxt.Type != "}" {
       stmt := parseStatement(nxt, ctx)
       block.Statements = append(block.Statements, stmt)
+      prev := nxt
       nxt = it.Next()
 
       if nxt == nil {
-        return ctx.CurrentErrorHandler().Add(nxt, "Expected '}' but found end of file")
+        return ctx.CurrentErrorHandler().Add(prev, "Expected '}' but found end of file")
       }
     }
     return block
@@ -150,8 +151,8 @@ func parseForLoop(tkn *token.Token, ctx *ParseContext) ast.Statement {
   if peek := it.Peek(); peek.Type == ";" {
     s := it.Next()
     numExp := parseExpression(it.Next(), ctx, nil)
-    if num, ok := numExp.(*ast.NumberLiteral); ok && num.Value == float64(int(num.Value)) {
-      step = int(num.Value)
+    if num, ok := numExp.(*ast.IntegerLiteral); ok {
+      step = int(num.Value.Int64())
     } else {
       it.SkipTo(token.Token{Type: "{", Value: "{"})
       return ctx.CurrentErrorHandler().Add(s, fmt.Sprintf("expected integer as step but found %s", numExp))
@@ -184,8 +185,8 @@ func parseReturnStatement(tkn *token.Token, ctx *ParseContext) ast.Statement {
   it := ctx.CurrentIterator()
   exp := parseExpression(it.Next(), ctx, nil)
   // expect a semicolon
-  if nxt := it.Peek(); nxt.Type != ";" {
-    return ctx.CurrentErrorHandler().Add(it.Current(), "expected semicolon to end return statement")
+  if nxt := it.Peek(); nxt == nil || nxt.Type != ";" {
+    return ctx.CurrentErrorHandler().Add(tkn, "expected semicolon to end return statement")
   }
   it.Next()
   return &ast.ReturnStatement{Value: exp}

@@ -1,12 +1,13 @@
 package parser
 
 import (
-  "fmt"
-  "strconv"
+	"fmt"
+	"math/big"
+	"strconv"
 
-  "github.com/jinzhu/copier"
-  "github.com/mcjcloud/taurine/ast"
-  "github.com/mcjcloud/taurine/token"
+	"github.com/jinzhu/copier"
+	"github.com/mcjcloud/taurine/ast"
+	"github.com/mcjcloud/taurine/token"
 )
 
 func parseExpression(tkn *token.Token, ctx *ParseContext, exp ast.Expression) ast.Expression {
@@ -15,6 +16,9 @@ func parseExpression(tkn *token.Token, ctx *ParseContext, exp ast.Expression) as
     if tkn.Type == "number" {
       val, _ := strconv.ParseFloat(tkn.Value, 64)
       return parseExpression(tkn, ctx, &ast.NumberLiteral{Value: val})
+    } else if tkn.Type == "integer" {
+      bigInt, _ := new(big.Int).SetString(tkn.Value, 10)
+      return parseExpression(tkn, ctx, &ast.IntegerLiteral{Value: bigInt})
     } else if tkn.Type == "string" {
       return parseExpression(tkn, ctx, &ast.StringLiteral{Value: tkn.Value})
     } else if tkn.Type == "bool" {
@@ -38,15 +42,20 @@ func parseExpression(tkn *token.Token, ctx *ParseContext, exp ast.Expression) as
         return parseExpression(tkn, ctx, &ast.Identifier{Name: tkn.Value})
       }
     } else if tkn.Type == "[" {
-      arrExp := parseExpression(it.Next(), ctx, nil)
-      // expect a ]
       nxt := it.Next()
+      exprs := make([]ast.Expression, 0)
+      if nxt.Type == "]" {
+        return parseExpression(nxt, ctx, &ast.ArrayExpression{Expressions: exprs})
+      }
+      arrExp := parseExpression(nxt, ctx, nil)
+
+      // expect a ]
+      nxt = it.Next()
       if nxt == nil || (nxt.Type != "]" && nxt.Type != ",") {
         it.SkipStatement()
         return ctx.CurrentErrorHandler().Add(nxt, "expected ']' or ',' in array expression")
       }
-      exprs := make([]ast.Expression, 1)
-      exprs[0] = arrExp
+      exprs = append(exprs, arrExp)
       if nxt.Type == "," {
         // while nxt is a ",", evaluate the next element and add it to the expression array
         for nxt.Type == "," {
@@ -325,6 +334,12 @@ func parseAssignmentExpression(tkn *token.Token, dataType ast.Symbol, ctx *Parse
   exp := parseExpression(tkn, ctx, nil)
   if dataType == ast.NUM {
     if _, ok := exp.(*ast.NumberLiteral); ok {
+      return exp
+    } else if intLit, ok := exp.(*ast.IntegerLiteral); ok {
+      return &ast.NumberLiteral{Value: float64(intLit.Value.Int64())}
+    }
+  } else if dataType == ast.INT {
+    if _, ok := exp.(*ast.IntegerLiteral); ok {
       return exp
     }
   } else if dataType == ast.STR {
