@@ -22,24 +22,31 @@ syn match numberRe '\d[[:digit:]]*[eE][\-+]\=\d\+'
 syn match numberRe '[-+]\=\d[[:digit:]]*\.\d*[eE][\-+]\=\d\+'
 syn match numberRe '\d[[:digit:]]*\.\d*[eE][\-+]\=\d\+'
 
+" bool regex
+syn match boolRe 'true'
+syn match boolRe 'false'
+
 " comment
 syn match commentRe '\/\/.*$'
 
 syn match closeParenthesisRe ')'
 
 " keywords
-syn keyword basicLanguageKeywords var while if else etch len func return import export as from
-syn keyword basicTypes num str bool obj arr func contained nextgroup=closeParenthesisRe skipwhite
+syn keyword basicLanguageKeywords var while if else etch len int for func
+syn keyword flowKeywords return import export as from
+syn keyword basicTypes num int void str bool obj arr
 
 syn region stringRe start='"' end='"' 
-syn region typeRe start='(' end=')' transparent contains=basicTypes,func
+syn region typeRe start='(' end=')' transparent contains=basicTypes,numberRe
 
 hi def link commentRe Comment
 hi def link basicTypes Type
 hi def link basicLanguageKeywords Preproc
 hi def link typeRe Type
-hi def link stringRe Constant
-hi def link numberRe Constant
+hi def link stringRe String
+hi def link numberRe Number
+hi def link boolRe Constant
+hi def link flowKeywords Statement
 
 let b:current_syntax = 'taurine'
 

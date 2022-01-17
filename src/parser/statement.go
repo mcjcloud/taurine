@@ -16,10 +16,11 @@ func parseStatement(tkn *token.Token, ctx *ParseContext) ast.Statement {
     for nxt.Type != "}" {
       stmt := parseStatement(nxt, ctx)
       block.Statements = append(block.Statements, stmt)
+      prev := nxt
       nxt = it.Next()
 
       if nxt == nil {
-        return ctx.CurrentErrorHandler().Add(nxt, "Expected '}' but found end of file")
+        return ctx.CurrentErrorHandler().Add(prev, "Expected '}' but found end of file")
       }
     }
     return block
@@ -184,8 +185,8 @@ func parseReturnStatement(tkn *token.Token, ctx *ParseContext) ast.Statement {
   it := ctx.CurrentIterator()
   exp := parseExpression(it.Next(), ctx, nil)
   // expect a semicolon
-  if nxt := it.Peek(); nxt.Type != ";" {
-    return ctx.CurrentErrorHandler().Add(it.Current(), "expected semicolon to end return statement")
+  if nxt := it.Peek(); nxt == nil || nxt.Type != ";" {
+    return ctx.CurrentErrorHandler().Add(tkn, "expected semicolon to end return statement")
   }
   it.Next()
   return &ast.ReturnStatement{Value: exp}

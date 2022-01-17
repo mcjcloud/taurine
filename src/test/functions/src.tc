@@ -24,6 +24,8 @@ var (obj) nestedObj = {
         return x + y;
       };
     },
+    n: 4,
+    b: false,
   },
 };
 

@@ -114,7 +114,13 @@ func executeStatement(stmt ast.Statement, scope *Scope) error {
       }
       forScope := NewScopeWithParent(scope)
       forScope.Set(forStmt.Control.Name, control)
-      executeStatement(forStmt.Statement, forScope)
+      if err := executeStatement(forStmt.Statement, forScope); err != nil {
+        return err
+      }
+      if forScope.ReturnValue != nil {
+        scope.ReturnValue = forScope.ReturnValue
+        break
+      }
     }
   } else if whileStmt, ok := stmt.(*ast.WhileLoopStatement); ok {
     exp, err := evaluateExpression(whileStmt.Condition, scope)

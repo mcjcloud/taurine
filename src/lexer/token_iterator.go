@@ -62,6 +62,9 @@ func (it *TokenIterator) Prev() *token.Token {
 
 // Current returns the current Token
 func (it *TokenIterator) Current() *token.Token {
+  if it.Index >= len(it.Tokens) {
+    return nil
+  }
 	return it.Tokens[it.Index]
 }
 

@@ -42,15 +42,20 @@ func parseExpression(tkn *token.Token, ctx *ParseContext, exp ast.Expression) as
         return parseExpression(tkn, ctx, &ast.Identifier{Name: tkn.Value})
       }
     } else if tkn.Type == "[" {
-      arrExp := parseExpression(it.Next(), ctx, nil)
-      // expect a ]
       nxt := it.Next()
+      exprs := make([]ast.Expression, 0)
+      if nxt.Type == "]" {
+        return parseExpression(nxt, ctx, &ast.ArrayExpression{Expressions: exprs})
+      }
+      arrExp := parseExpression(nxt, ctx, nil)
+
+      // expect a ]
+      nxt = it.Next()
       if nxt == nil || (nxt.Type != "]" && nxt.Type != ",") {
         it.SkipStatement()
         return ctx.CurrentErrorHandler().Add(nxt, "expected ']' or ',' in array expression")
       }
-      exprs := make([]ast.Expression, 1)
-      exprs[0] = arrExp
+      exprs = append(exprs, arrExp)
       if nxt.Type == "," {
         // while nxt is a ",", evaluate the next element and add it to the expression array
         for nxt.Type == "," {
