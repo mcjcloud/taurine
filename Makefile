@@ -1,8 +1,8 @@
 all:
-	go build ./cmd/taurine
+	go build
 
 install:
-	go install ./cmd/taurine
+	go install
 
 test: FORCE
 	go run ./test/test.go
