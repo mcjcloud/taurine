@@ -1,0 +1,42 @@
+{
+  "name": "taurine",
+  "displayName": "taurine",
+  "description": "Taurine is a simple language fueled by caffiene",
+  "version": "0.0.1",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/mcjcloud/taurine"
+  },
+  "engines": {
+    "vscode": "^1.68.0"
+  },
+  "categories": [
+    "Programming Languages"
+  ],
+  "contributes": {
+    "languages": [
+      {
+        "id": "taurine",
+        "icon": {
+          "dark": "./icons/icon-dark.svg",
+          "light": "./icons/icon-light.svg"
+        },
+        "aliases": [
+          "Taurine",
+          "taurine"
+        ],
+        "extensions": [
+          ".tc"
+        ],
+        "configuration": "./language-configuration.json"
+      }
+    ],
+    "grammars": [
+      {
+        "language": "taurine",
+        "scopeName": "source.tc",
+        "path": "./syntaxes/taurine.tmLanguage.json"
+      }
+    ]
+  }
+}
