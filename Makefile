@@ -1,15 +1,16 @@
 all:
-	cd src && go build
-	mv ./src/taurine ./taurine
+	go build ./cmd/taurine
 
 install:
-	cd src && go install
+	go install ./cmd/taurine
 
-runtests:
-	cd src && go run ./test/test.go
+test: FORCE
+	go run ./test/test.go
 
 gentests:
-	cd src && go run ./test/test.go --gen-all
+	go run ./test/test.go --gen-all
 
 clean:
 	rm taurine
+
+FORCE: ;

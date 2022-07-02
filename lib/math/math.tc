@@ -1,0 +1,34 @@
+export func (num) abs(num x) {
+  if x < 0 {
+    return x * -1;
+  }
+  return x;
+}
+
+export func (num) max(num x, num y) {
+  if x > y {
+    return x;
+  }
+  return y;
+}
+
+export func (num) min(num x, num y) {
+  if x < y {
+    return x;
+  }
+  return y;
+}
+
+export func (int) floor(num x) {
+  return int(x);
+}
+
+export func (int) ceil(num x) {
+  var (int) ix = int(x);
+  if ix / x != 0 {
+    return ix + 1;
+  }
+  return ix;
+}
+
+export var (num) PI = 3.14159;
