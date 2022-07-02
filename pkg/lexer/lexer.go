@@ -41,6 +41,8 @@ func Analyze(source string) (tkns []*token.Token) {
 			continue
 
 		}
+
+		// skip comments
 		if c == '/' {
 			// check if the next character is a /
 			nxt := scanner.Next()
@@ -52,6 +54,19 @@ func Analyze(source string) (tkns []*token.Token) {
 				continue
 			} else {
 				// otherwise put both of the characters back and keep going
+				scanner.Unread()
+			}
+		}
+
+		// skip #! line
+		if c == '#' {
+			nxt := scanner.Next()
+			if nxt == '!' {
+				for nxt != '\n' && nxt != '\r' {
+					nxt = scanner.Next()
+				}
+				continue
+			} else {
 				scanner.Unread()
 			}
 		}
