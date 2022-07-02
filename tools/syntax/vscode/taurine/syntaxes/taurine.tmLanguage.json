@@ -1,0 +1,108 @@
+{
+  "$schema": "https://raw.githubusercontent.com/martinring/tmlanguage/master/tmlanguage.json",
+  "name": "Taurine",
+  "patterns": [
+    { "include": "#keywords" },
+    { "include": "#strings" },
+    { "include": "#types" },
+    { "include": "#block_comments" },
+    { "include": "#line_comments" },
+    { "include": "#functions" },
+    { "include": "#constant_values" },
+    { "include": "#variable_functions" },
+    { "include": "#variable_members" },
+    { "include": "#variables" }
+  ],
+  "repository": {
+    "keywords": {
+      "patterns": [
+        {
+          "name": "keyword.control.taurine",
+          "match": "\\b(if|else|while|for|return|var|etch|import|export|from)\\b"
+        },
+        {
+          "name": "keyword.control.taurine",
+          "match": "func(?=\\s*\\(\\w+\\))"
+        }
+      ]
+    },
+    "types": {
+      "patterns": [
+        {
+          "name": "entity.name.type.taurine",
+          "match": "\\b(int|num|str|bool|func|obj|arr)\\b"
+        }
+      ]
+    },
+    "strings": {
+      "name": "string.quoted.double.taurine",
+      "begin": "\"",
+      "end": "\"",
+      "patterns": [
+        {
+          "name": "constant.character.escape.taurine",
+          "match": "\\\\."
+        }
+      ]
+    },
+    "block_comments": {
+      "name": "comment.block.taurine",
+      "begin": "\\/\\*",
+      "end": "\\*\\/"
+    },
+    "line_comments": {
+      "name": "comment.line.taurine",
+      "begin": "\\/\\/",
+      "end": "$"
+    },
+    "functions": {
+      "patterns": [
+        {
+          "name": "entity.name.function.taurine",
+          "match": "(?<=func\\s*\\(\\w+\\)\\s*)[\\w\\d]+"
+        },
+        {
+          "name": "entity.name.function.taurine",
+          "match": "(?<=\\(func\\)\\s*)[\\w\\d]+(?=\\s*=\\s*func)"
+        }
+      ]
+    },
+    "constant_values": {
+      "patterns": [
+        {
+          "name": "constant.numeric.taurine",
+          "match": "\\b(0x[\\da-fA-F]+|\\d+(\\.\\d+)?)\\b"
+        },
+        {
+          "name": "constant.numeric.taurine",
+          "match": "\\b(true|false)\\b"
+        }
+      ]
+    },
+		"variable_members": {
+			"patterns": [
+				{
+					"name": "variable.other.member.taurine",
+					"match": "(?<=[\\w\\d]+\\.)[\\w\\d]+"
+				}
+			]
+		},
+		"variable_functions": {
+			"patterns": [
+				{
+					"name": "variable.function.taurine",
+					"match": "[\\w\\d]+(?=\\()"
+				}
+			]
+		},
+    "variables": {
+      "patterns": [
+        {
+          "name": "variable.other.taurine",
+          "match": "\\b[\\w\\d]+\\b"
+        }
+      ]
+    }
+  },
+  "scopeName": "source.tc"
+}
