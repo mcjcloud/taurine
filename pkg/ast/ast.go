@@ -10,7 +10,7 @@ import (
 
 // Node represents a node in the AST
 type Node interface {
-	String() string
+	fmt.Stringer
 }
 
 // Statement represents a statement
