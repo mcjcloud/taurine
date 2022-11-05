@@ -11,6 +11,6 @@ gentests:
 	go run ./test/test.go --gen-all
 
 clean:
-	rm taurine
+	rm taurine *.ll out.o out.s *.out
 
 FORCE: ;

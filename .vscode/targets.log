@@ -6,9 +6,8 @@ make all --print-data-base --no-builtin-variables --no-builtin-rules --question
 # PARTICULAR PURPOSE.
 
 # This program built for i386-apple-darwin11.3.0
- 
 
-# Make data base, printed on Sat Jul  2 13:06:03 2022
+# Make data base, printed on Sun Jul  3 12:02:24 2022
 
 # Variables
 
@@ -41,7 +40,7 @@ VSCODE_VERBOSE_LOGGING = true
 # environment
 __CFBundleIdentifier = com.microsoft.VSCode
 # environment
-VSCODE_IPC_HOOK_EXTHOST = /var/folders/_t/xt8ykc8j5vd94nlklfnxxwg80000gn/T/vscode-ipc-964b13f4-3dfd-4eca-8c2e-c54d251b4533.sock
+VSCODE_IPC_HOOK_EXTHOST = /var/folders/_t/xt8ykc8j5vd94nlklfnxxwg80000gn/T/vscode-ipc-7f6515cc-3b10-434d-8819-0848ffa5162f.sock
 # environment
 VSCODE_CWD = /
 # environment
@@ -159,9 +158,9 @@ VSCODE_PID = 30377
 
 # Directories
 
-# . (device 16777232, inode 537883): 18 files, no impossibilities.
+# . (device 16777232, inode 537883): 19 files, no impossibilities.
 
-# 18 files, no impossibilities in 1 directories.
+# 19 files, no impossibilities in 1 directories.
 
 # Implicit Rules
 
@@ -195,7 +194,7 @@ all:
 # variable set hash-table stats:
 # Load=8/32=25%, Rehash=0, Collisions=1/10=10%
 #  commands to execute (from `Makefile', line 2):
-	go build ./cmd/taurine
+	go build
 	
 
 FORCE:
@@ -222,7 +221,7 @@ gentests:
 # Not a target:
 Makefile:
 #  Implicit rule search has been done.
-#  Last modified 2022-07-02 12:52:59
+#  Last modified 2022-07-02 15:39:51
 #  File has been updated.
 #  Successfully updated.
 # variable set hash-table stats:
@@ -255,7 +254,7 @@ install:
 #  Modification time never checked.
 #  File has not been updated.
 #  commands to execute (from `Makefile', line 5):
-	go install ./cmd/taurine
+	go install
 	
 
 # files hash-table stats:
@@ -271,6 +270,6 @@ install:
 # strcache size: total = 4096 / max = 4096 / min = 4096 / avg = 4096
 # strcache free: total = 4087 / max = 4087 / min = 4087 / avg = 4087
 
-# Finished Make data base on Sat Jul  2 13:06:03 2022
+# Finished Make data base on Sun Jul  3 12:02:24 2022
 
  

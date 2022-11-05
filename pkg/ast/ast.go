@@ -10,7 +10,7 @@ import (
 
 // Node represents a node in the AST
 type Node interface {
-	String() string
+	fmt.Stringer
 }
 
 // Statement represents a statement
@@ -21,6 +21,7 @@ type Statement interface {
 
 // Expression represents an evaluatable expression
 type Expression interface {
+	fmt.Stringer
 	Node
 	Evaluate()
 }

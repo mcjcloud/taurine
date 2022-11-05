@@ -63,6 +63,7 @@ var rootCmd = &cobra.Command{
 func Execute() {
 	rootCmd.AddCommand(buildAstCommand())
 	rootCmd.AddCommand(buildTokenCommand())
+	rootCmd.AddCommand(buildCompileCommand())
 
 	if err := rootCmd.Execute(); err != nil {
 		fmt.Println(err)
