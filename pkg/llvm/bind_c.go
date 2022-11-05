@@ -4,37 +4,39 @@ import (
 	"fmt"
 
 	"github.com/llir/llvm/ir"
-	"github.com/llir/llvm/ir/enum"
+	"github.com/llir/llvm/ir/constant"
 	"github.com/llir/llvm/ir/types"
-	"github.com/llir/llvm/ir/value"
 )
 
-func (m LlvmModule) compileLibC() error {
-	if err := m.compilePuts(); err != nil {
-		return err
+func (m LlvmModule) puts(val *constant.CharArray, block *ir.Block) error {
+	if m.globalFunctions["puts"] == nil {
+		return fmt.Errorf("function not found: puts")
 	}
+
+	strMem := block.NewAlloca(val.Type())
+	block.NewStore(val, strMem)
+
+	bc := block.NewBitCast(strMem, types.I8Ptr)
+	block.NewCall(m.globalFunctions["puts"], bc)
+
 	return nil
 }
 
-func (m LlvmModule) compilePuts() (err error) {
-	defer func() {
-		err = fmt.Errorf("%v", recover())
-	}()
-	charParam := ir.NewParam("char", types.I8Ptr)
-	charParam.Attrs = append(charParam.Attrs, enum.ParamAttrNoCapture)
-	puts := ir.NewFunc("puts", types.I32, charParam)
-	puts.FuncAttrs = append(puts.FuncAttrs, enum.FuncAttrNoUnwind)
-	m.Funcs = append(m.Funcs, puts)
-	m.globalFunctions["puts"] = puts
-	return
-}
+func (m LlvmModule) printf(val *constant.CharArray, block *ir.Block) error {
+	if _, ok := m.globalFunctions["printf"]; !ok {
+		return fmt.Errorf("function not found: printf")
+	}
 
-func (m LlvmModule) puts(val value.Value, block *ir.Block) {
-	// TODO: replace hardcoded 12 with string size
-	s := val.String()
+	template := constant.NewCharArrayFromString("%s\x00")
+	tempMem := block.NewAlloca(template.Type())
+	block.NewStore(template, tempMem)
+	tBc := block.NewBitCast(tempMem, types.I8Ptr)
 
-	strMem := block.NewAlloca(types.NewArray(uint64(len(s)), types.I8))
+	strMem := block.NewAlloca(val.Type())
 	block.NewStore(val, strMem)
-	bc := block.NewBitCast(strMem, types.I8Ptr)
-	block.NewCall(m.globalFunctions["puts"], bc)
+	strBc := block.NewBitCast(strMem, types.I8Ptr)
+
+	block.NewCall(m.globalFunctions["printf"], tBc, strBc)
+
+	return nil
 }

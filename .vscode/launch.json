@@ -22,7 +22,7 @@
       "mode": "auto",
       "program": "${workspaceFolder}",
       "env": {},
-      "args": ["./example/main.tc"]
+      "args": ["c", "./test/llvm/src.tc", "-o", "llvmtest"]
     }
   ]
 }

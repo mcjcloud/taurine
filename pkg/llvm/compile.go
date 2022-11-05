@@ -8,13 +8,9 @@ import (
 	"github.com/llir/llvm/ir/types"
 	"github.com/llir/llvm/ir/value"
 	"github.com/mcjcloud/taurine/pkg/ast"
+	"github.com/mcjcloud/taurine/pkg/llvm/lib"
 	"github.com/mcjcloud/taurine/pkg/util"
 )
-
-type LlvmModule struct {
-	*ir.Module
-	globalFunctions map[string]value.Value
-}
 
 func Compile(e *ast.Ast, importGraph *util.ImportGraph) (*ir.Module, error) {
 	m := LlvmModule{
@@ -24,7 +20,9 @@ func Compile(e *ast.Ast, importGraph *util.ImportGraph) (*ir.Module, error) {
 
 	// setup libc bindings
 	// TODO: think about replacing this with assembly to avoid C dep
-	m.compileLibC()
+	if err := lib.CompileLibc(m); err != nil {
+		return nil, err
+	}
 
 	main := m.NewFunc("main", types.I32)
 	entry := main.NewBlock("")

@@ -1,2 +1,2 @@
-etch "Hello world";
+etch "Hello world", 21;
 etch 32;

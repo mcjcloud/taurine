@@ -21,6 +21,7 @@ type Statement interface {
 
 // Expression represents an evaluatable expression
 type Expression interface {
+	fmt.Stringer
 	Node
 	Evaluate()
 }

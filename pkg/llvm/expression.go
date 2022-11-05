@@ -21,10 +21,10 @@ func (m LlvmModule) compileExpression(exp ast.Expression, block *ir.Block) (valu
 		return m.compileNumberLiteral(exp, block)
 	case *ast.IntegerLiteral:
 		return m.compileIntegerLiteral(exp, block)
-	case *ast.OperationExpression:
+	case *ast.Identifier:
 		// TODO
 		return nil, errors.New("unimplemented")
-	case *ast.Identifier:
+	case *ast.OperationExpression:
 		// TODO
 		return nil, errors.New("unimplemented")
 	case *ast.VariableDecleration:

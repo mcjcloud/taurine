@@ -3,6 +3,7 @@ module github.com/mcjcloud/taurine
 go 1.18
 
 require (
+	github.com/google/uuid v1.3.0
 	github.com/jinzhu/copier v0.3.5
 	github.com/kylelemons/godebug v1.1.0
 	github.com/llir/llvm v0.3.3
