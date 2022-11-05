@@ -1,2 +1,4 @@
 etch "Hello world", 21;
 etch 32;
+etch true, false;
+etch 32.02;

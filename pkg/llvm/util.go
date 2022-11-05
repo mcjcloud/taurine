@@ -19,7 +19,13 @@ func wrapInCharArray(val value.Value) (*constant.CharArray, error) {
 			nullTerminated = append([]byte(t.X.String()), 0x00)
 		}
 	case *constant.Int:
-		nullTerminated = append([]byte(t.X.String()), 0x00)
+		if val == constant.True {
+			nullTerminated = append([]byte("true"), 0x00)
+		} else if val == constant.False {
+			nullTerminated = append([]byte("false"), 0x00)
+		} else {
+			nullTerminated = append([]byte(t.X.String()), 0x00)
+		}
 	default:
 		return nil, fmt.Errorf("unknown type %s", t)
 	}

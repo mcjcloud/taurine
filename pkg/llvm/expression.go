@@ -78,5 +78,10 @@ func (m LlvmModule) compileIntegerLiteral(exp *ast.IntegerLiteral, block *ir.Blo
 }
 
 // func (m LlvmModule) compileVariableDecleration(exp *ast.VariableDecleration, block *ir.Block) (value.Value, error) {
+// 	val, err := m.compileExpression(exp.Value, block)
+// 	if err != nil {
+// 		return nil, fmt.Errorf("compile value: %s", err)
+// 	}
 
+// 	block
 // }
