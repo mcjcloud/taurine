@@ -38,7 +38,10 @@ func NewParseContext(absPath string) (*ParseContext, error) {
 		return nil, fmt.Errorf("error reading referenced source: %s", err.Error())
 	}
 	src := string(bytes)
-	tkns := lexer.Analyze(src)
+	tkns, err := lexer.Analyze(src)
+  if err != nil {
+    return nil, err
+  }
 
 	// assign token iterator and error handlers
 	ctx.Iterators[absPath] = lexer.NewTokenIterator(tkns)
@@ -99,7 +102,10 @@ func (ctx *ParseContext) PushImport(relativePath string) error {
 		return fmt.Errorf("error reading referenced source: %s", err.Error())
 	}
 	src := string(bytes)
-	tkns := lexer.Analyze(src)
+	tkns, err := lexer.Analyze(src)
+  if err != nil {
+    return fmt.Errorf("error in lexical analyzer: %s", err.Error())
+  }
 
 	// add iterator and error handler to context, push the current file
 	ctx.Iterators[absPath] = lexer.NewTokenIterator(tkns)
