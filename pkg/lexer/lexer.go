@@ -25,7 +25,7 @@ func isOperation(c byte) bool {
 }
 
 // Analyze creates a series of tokens from source code
-func Analyze(source string) (tkns []*token.Token) {
+func Analyze(source string) (tkns []*token.Token, err error) {
 	tkns = make([]*token.Token, 0)
 	scanner := token.NewScanner(source)
 
@@ -48,7 +48,7 @@ func Analyze(source string) (tkns []*token.Token) {
 			nxt := scanner.Next()
 			if nxt == '/' {
 				// eat every character until a newline is found
-				for nxt != '\n' && nxt != '\r' {
+				for nxt != '\n' && nxt != '\r' && scanner.HasNext() {
 					nxt = scanner.Next()
 				}
 				continue
@@ -62,7 +62,7 @@ func Analyze(source string) (tkns []*token.Token) {
 		if c == '#' {
 			nxt := scanner.Next()
 			if nxt == '!' {
-				for nxt != '\n' && nxt != '\r' {
+				for nxt != '\n' && nxt != '\r' && scanner.HasNext() {
 					nxt = scanner.Next()
 				}
 				continue
@@ -72,7 +72,11 @@ func Analyze(source string) (tkns []*token.Token) {
 		}
 
 		if c == '"' {
-			tkns = append(tkns, scanString(scanner))
+      str, err := scanString(scanner)
+      if err != nil {
+        return tkns, err
+      }
+			tkns = append(tkns, str)
 		} else if c == '-' {
 			nxt := scanner.Next()
 			if numberRe.Match([]byte{nxt}) {
@@ -113,10 +117,10 @@ func Analyze(source string) (tkns []*token.Token) {
 }
 
 // scan a string from the reader, including the double quotes
-func scanString(scanner *token.Scanner) *token.Token {
+func scanString(scanner *token.Scanner) (*token.Token, error) {
 	var val string
 	c := scanner.Next()
-	for c != '"' {
+	for c != '"' && c != '\n' && scanner.HasNext() {
 		val += string(c)
 		c = scanner.Next()
 		if c == '\\' {
@@ -126,7 +130,10 @@ func scanString(scanner *token.Scanner) *token.Token {
 			c = scanner.Next()
 		}
 	}
-	return token.NewToken("string", val, *scanner)
+  if c == '\n' || !scanner.HasNext() {
+    return nil, fmt.Errorf("expected closing quote '\"', found %c", c)
+  }
+	return token.NewToken("string", val, *scanner), nil
 }
 
 func scanOperation(c byte, scanner *token.Scanner) *token.Token {

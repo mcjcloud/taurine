@@ -21,6 +21,17 @@ var (str) myName = "Brayden";
 etch myName, " is ", myAge, " years old."; // "Brayden is 22 years old."
 ```
 
+The following data types are allowed:
+
+| Type   | Description           |
+|--------|-----------------------|
+| `str`  | string                |
+| `num`  | floating point number |
+| `int`  | integer               |
+| `bool` | boolean               |
+| `arr`  | array                 |
+| `obj`  | object                |
+
 ## Read statement
 
 To read a string from stdin, use the `read` statement.
@@ -43,6 +54,14 @@ func (num) factorial(num n) {
   return n * factorial(n - 1);
 }
 etch factorial(5); // "120.000000"
+```
+
+Functions can be assigned to variables.
+
+```
+var (func) fn = func (num) (num n) {
+  return n * 2;
+}
 ```
 
 ## Expression grouping
@@ -91,14 +110,14 @@ etch myObj.hello;
 
 Pass functions as arguments and assign them to variables.
 
+## 
+
 # COMING SOON
 
 The below features have not been implemented yet.
 
-## Error line numbers
-Compiler does not print line number with the error because it doesn't know which line it was.
-
 ## String interpolation
+
 Interpolate variables in strings
 
 ```

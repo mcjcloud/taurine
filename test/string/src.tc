@@ -1,0 +1,4 @@
+var (str) s = "my string";
+var (str) interp = "\(s) is mine.";
+
+etch s, interp;
